@@ -2,8 +2,9 @@
 
 import type { DashboardMetric } from "@/lib/dfw-dashboard-sample-data";
 import { CHART } from "@/lib/chart-palette";
-import { formatMetricValue } from "@/lib/format-metric";
+import { DataStatusBadge } from "@/components/dashboard/data-status-badge";
 import { MetricChart } from "@/components/dashboard/metric-chart";
+import { formatMetricValue } from "@/lib/format-metric";
 
 type DualRateMetricCardProps = {
   metric: DashboardMetric;
@@ -15,18 +16,36 @@ export function DualRateMetricCard({ metric }: DualRateMetricCardProps) {
     metric.pointsSecondary?.[metric.pointsSecondary.length - 1]?.value ?? 0;
   const spread = mortgage - treasury;
 
+  const badgeTitle = [
+    metric.fredSeriesId ? `FRED: ${metric.fredSeriesId}` : null,
+    metric.statusNote,
+    metric.latestObservationDate
+      ? `Latest: ${metric.latestObservationDate}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <article className="rounded-2xl border border-stone-200/80 bg-white/70 p-4 shadow-sm shadow-stone-900/[0.04] ring-1 ring-stone-900/[0.02] backdrop-blur-sm sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 shrink-0 lg:max-w-sm">
-          <h3 className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-500">
-            {metric.title}
-          </h3>
-          {metric.subtitle ? (
-            <p className="mt-0.5 text-xs leading-snug text-stone-400">
-              {metric.subtitle}
-            </p>
-          ) : null}
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-500">
+                {metric.title}
+              </h3>
+              {metric.subtitle ? (
+                <p className="mt-0.5 text-xs leading-snug text-stone-400">
+                  {metric.subtitle}
+                </p>
+              ) : null}
+            </div>
+            <DataStatusBadge
+              status={metric.dataStatus}
+              title={badgeTitle || undefined}
+            />
+          </div>
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
             <div>
               <p className="text-[0.65rem] font-medium uppercase tracking-wider text-stone-400">
@@ -56,6 +75,11 @@ export function DualRateMetricCard({ metric }: DualRateMetricCardProps) {
               </p>
             </div>
           </div>
+          {metric.updatedThrough ? (
+            <p className="mt-2 text-[0.65rem] text-stone-400 tabular-nums">
+              Updated through {metric.updatedThrough}
+            </p>
+          ) : null}
           <div className="mt-3 flex flex-wrap gap-4 text-xs text-stone-500">
             <span className="inline-flex items-center gap-1.5">
               <span

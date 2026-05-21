@@ -1,3 +1,8 @@
+import {
+  annotateBundleFallback,
+  type DashboardMetricDraft,
+} from "@/lib/dashboard/metric-metadata";
+
 export type ChartPoint = { label: string; value: number };
 
 export type ChartKind = "line" | "bar" | "area" | "dual-line";
@@ -13,6 +18,8 @@ export type ValueFormat =
   | "income"
   | "spread";
 
+export type MetricDataStatus = "live" | "fallback" | "error";
+
 export type DashboardMetric = {
   title: string;
   subtitle?: string;
@@ -24,7 +31,15 @@ export type DashboardMetric = {
   color?: string;
   colorSecondary?: string;
   source?: string;
+  /** Latest observation period (display). */
   updatedThrough?: string;
+  /** ISO date of latest observation when known. */
+  latestObservationDate?: string;
+  dataStatus: MetricDataStatus;
+  /** FRED series_id when this metric is FRED-backed. */
+  fredSeriesId?: string;
+  /** Short note when dataStatus is error (e.g. fetch failure). */
+  statusNote?: string;
 };
 
 export type DashboardBundle = {
@@ -162,7 +177,7 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
   const cpiDfw = walk(rand, n, 3.35, 0.015, 0.34, 1.25, 8.2);
   const gdpTx = walk(rand, n, 2.85, 0.009, 0.4, 0.95, 4.65);
 
-  return {
+  const bundle = {
     dfw: [
       {
         title: "Median Home Price — DFW",
@@ -357,5 +372,21 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         source: "FRED",
       },
     ],
+  };
+
+  return {
+    dfw: annotateBundleFallback(bundle.dfw as DashboardMetricDraft[]),
+    arlington: annotateBundleFallback(
+      bundle.arlington as DashboardMetricDraft[],
+    ),
+    mansfield: annotateBundleFallback(
+      bundle.mansfield as DashboardMetricDraft[],
+    ),
+    national: annotateBundleFallback(
+      bundle.national as DashboardMetricDraft[],
+    ),
+    regional: annotateBundleFallback(
+      bundle.regional as DashboardMetricDraft[],
+    ),
   };
 }

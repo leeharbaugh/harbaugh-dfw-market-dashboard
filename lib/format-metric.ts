@@ -24,8 +24,11 @@ export function formatMetricValue(value: number, format: ValueFormat): string {
       return count0.format(value);
     case "idx":
       return value.toFixed(1);
-    case "trillions":
-      return `$${value.toFixed(2)}T`;
+    case "trillions": {
+      const abs = Math.abs(value);
+      const decimals = abs >= 10 ? 1 : abs >= 1 ? 2 : 2;
+      return `$${value.toFixed(decimals).replace(/\.0$/, "")}T`;
+    }
     case "income":
       return usd0.format(value);
     case "spread":

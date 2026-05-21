@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DualRateMetricCard } from "@/components/dashboard/dual-rate-metric-card";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { SectionHeading } from "@/components/dashboard/section-heading";
-import { buildDashboardMetrics } from "@/lib/dfw-dashboard-sample-data";
+import type { DashboardBundle } from "@/lib/dfw-dashboard-sample-data";
 
 function renderNationalMetric(
-  m: ReturnType<typeof buildDashboardMetrics>["national"][number],
+  m: DashboardBundle["national"][number],
   i: number,
 ) {
   if (m.chartKind === "dual-line") {
@@ -16,12 +16,54 @@ function renderNationalMetric(
   return <MetricCard key={`nat-${i}-${m.title}`} metric={m} />;
 }
 
-export function DfwMarketDashboard() {
+type DfwMarketDashboardProps = {
+  initialData: DashboardBundle;
+};
+
+export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
+  const [data, setData] = useState(initialData);
   const [refreshKey, setRefreshKey] = useState(0);
-  const data = useMemo(
-    () => buildDashboardMetrics(refreshKey * 2654435761),
-    [refreshKey],
-  );
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const metrics = [
+      ...data.dfw,
+      ...data.arlington,
+      ...data.mansfield,
+      ...data.national,
+      ...data.regional,
+    ];
+    console.log("[dashboard] Client metric status");
+    console.table(
+      metrics.map((m) => ({
+        title: m.title,
+        status: m.dataStatus,
+        fred: m.fredSeriesId ?? "—",
+        updatedThrough: m.updatedThrough ?? "—",
+        latest: m.points[m.points.length - 1]?.value,
+      })),
+    );
+  }, [data]);
+
+  const refresh = useCallback(async () => {
+    const nextKey = refreshKey + 1;
+    setRefreshing(true);
+    try {
+      const seed = nextKey * 2654435761;
+      const res = await fetch(`/api/dashboard?seed=${seed}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const bundle = (await res.json()) as DashboardBundle;
+        setData(bundle);
+        setRefreshKey(nextKey);
+      }
+    } catch (error) {
+      console.error("[dashboard] Refresh failed", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshKey]);
 
   const nationalDual = data.national.filter((m) => m.chartKind === "dual-line");
   const nationalRest = data.national.filter((m) => m.chartKind !== "dual-line");
@@ -52,10 +94,11 @@ export function DfwMarketDashboard() {
             <p className="text-xs text-stone-400 tabular-nums">As of {asOf}</p>
             <button
               type="button"
-              onClick={() => setRefreshKey((k) => k + 1)}
-              className="inline-flex items-center justify-center rounded-full border border-[#c9be92]/55 bg-[#d8cfa8]/85 px-4 py-2 text-sm font-medium text-stone-800 shadow-sm shadow-stone-900/5 transition hover:border-[#b8aa7a]/70 hover:bg-[#cdc39a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px"
+              onClick={() => void refresh()}
+              disabled={refreshing}
+              className="inline-flex items-center justify-center rounded-full border border-[#c9be92]/55 bg-[#d8cfa8]/85 px-4 py-2 text-sm font-medium text-stone-800 shadow-sm shadow-stone-900/5 transition hover:border-[#b8aa7a]/70 hover:bg-[#cdc39a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px disabled:opacity-60"
             >
-              Refresh sample data
+              {refreshing ? "Refreshing…" : "Refresh sample data"}
             </button>
           </div>
         </header>
