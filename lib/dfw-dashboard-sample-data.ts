@@ -38,8 +38,14 @@ export type DashboardMetric = {
   dataStatus: MetricDataStatus;
   /** FRED series_id when this metric is FRED-backed. */
   fredSeriesId?: string;
+  /** TRERC series label when this metric is TRERC-backed. */
+  trercSeriesId?: string;
   /** Short note when dataStatus is error (e.g. fetch failure). */
   statusNote?: string;
+  /** Period-over-period comparison labels (defaults: MoM / 3-mo / YoY). */
+  comparisonLabels?: [string, string, string];
+  /** Periods back from latest point for each comparison (defaults: 1 / 3 / 12). */
+  comparisonOffsets?: [number, number, number];
 };
 
 export type DashboardBundle = {
@@ -186,7 +192,8 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "usd",
         chartKind: "line",
         color: "#1e3a5f",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
       {
         title: "Months Supply — DFW",
@@ -195,7 +202,8 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "ratioMo",
         chartKind: "bar",
         color: "#5b7c99",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
       {
         title: "Sales Volume — DFW",
@@ -204,11 +212,13 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "count",
         chartKind: "bar",
         color: "#44403c",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
       {
-        title: "Case-Shiller Home Price Index — DFW",
-        subtitle: "Jan 2000 = 100, sample series",
+        title:
+          "S&P CoreLogic/Cotality Case-Shiller TX-Dallas Home Price Index",
+        subtitle: "Jan 2000 = 100",
         points: asSeries(labels, csDfw),
         format: "idx",
         chartKind: "line",
@@ -224,7 +234,8 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "usd",
         chartKind: "line",
         color: "#1e3a5f",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
       {
         title: "Arlington Months Supply",
@@ -233,7 +244,8 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "ratioMo",
         chartKind: "bar",
         color: "#5b7c99",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
     ],
     mansfield: [
@@ -244,7 +256,8 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "usd",
         chartKind: "line",
         color: "#1e3a5f",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
       {
         title: "Mansfield Months Supply",
@@ -253,7 +266,8 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "ratioMo",
         chartKind: "bar",
         color: "#5b7c99",
-        source: "TRERC",
+        source:
+          "Texas Real Estate Research Center at Texas A&M University",
       },
     ],
     national: [
@@ -334,8 +348,9 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         source: "FRED",
       },
       {
-        title: "Case-Shiller Home Price Index — U.S. National",
-        subtitle: "Jan 2000 = 100, sample series",
+        title:
+          "S&P CoreLogic/Cotality Case-Shiller U.S. National Home Price Index",
+        subtitle: "Jan 2000 = 100",
         points: asSeries(labels, csNational),
         format: "idx",
         chartKind: "line",
@@ -351,7 +366,7 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "pct2",
         chartKind: "area",
         color: "#5b7c99",
-        source: "FRED",
+        source: "BLS / FRED",
       },
       {
         title: "CPI Inflation — DFW",
@@ -360,11 +375,11 @@ export function buildDashboardMetrics(seed: number): DashboardBundle {
         format: "pct2",
         chartKind: "area",
         color: "#5b7c99",
-        source: "FRED",
+        source: "BLS / FRED",
       },
       {
         title: "Real GDP — Texas",
-        subtitle: "State real GDP growth, year-over-year",
+        subtitle: "State real GDP growth, year-over-year (quarterly)",
         points: asSeries(labels, gdpTx),
         format: "pct2",
         chartKind: "line",

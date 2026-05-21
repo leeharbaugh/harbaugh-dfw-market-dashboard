@@ -15,10 +15,17 @@ type MetricCardProps = {
 
 export function MetricCard({ metric }: MetricCardProps) {
   const pts = metric.points;
-  const last = pts[pts.length - 1]?.value ?? 0;
-  const prev1 = pts[pts.length - 2]?.value;
-  const prev3 = pts[pts.length - 4]?.value;
-  const prev12 = pts[pts.length - 13]?.value;
+  const lastIdx = pts.length - 1;
+  const last = pts[lastIdx]?.value ?? 0;
+  const [off1, off3, off12] = metric.comparisonOffsets ?? [1, 3, 12];
+  const [label1, label3, label12] = metric.comparisonLabels ?? [
+    "MoM",
+    "3-mo",
+    "YoY",
+  ];
+  const prev1 = pts[lastIdx - off1]?.value;
+  const prev3 = pts[lastIdx - off3]?.value;
+  const prev12 = pts[lastIdx - off12]?.value;
 
   const mom = pctChange(last, prev1 ?? last);
   const three = pctChange(last, prev3 ?? last);
@@ -26,6 +33,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 
   const badgeTitle = [
     metric.fredSeriesId ? `FRED: ${metric.fredSeriesId}` : null,
+    metric.trercSeriesId ? `TRERC: ${metric.trercSeriesId}` : null,
     metric.statusNote,
     metric.latestObservationDate
       ? `Latest: ${metric.latestObservationDate}`
@@ -59,15 +67,15 @@ export function MetricCard({ metric }: MetricCardProps) {
         </p>
         <dl className="flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] text-stone-500 tabular-nums">
           <div className="flex items-baseline gap-1.5">
-            <dt className="font-medium text-stone-400">MoM</dt>
+            <dt className="font-medium text-stone-400">{label1}</dt>
             <dd className="text-stone-700">{formatDeltaPct(mom)}</dd>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <dt className="font-medium text-stone-400">3-mo</dt>
+            <dt className="font-medium text-stone-400">{label3}</dt>
             <dd className="text-stone-700">{formatDeltaPct(three)}</dd>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <dt className="font-medium text-stone-400">YoY</dt>
+            <dt className="font-medium text-stone-400">{label12}</dt>
             <dd className="text-stone-700">{formatDeltaPct(yoy)}</dd>
           </div>
         </dl>
