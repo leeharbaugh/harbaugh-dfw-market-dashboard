@@ -17,7 +17,10 @@ import {
   EditorialYAxis,
   useEditorialAxes,
 } from "@/components/dashboard/editorial-axes";
-import { ChartWrapper } from "@/components/dashboard/chart-wrapper";
+import {
+  CHART_AXIS_TOOLTIP,
+  ChartTouchWrapper,
+} from "@/components/dashboard/chart-touch-wrapper";
 import {
   ChartPlaceholder,
   useChartMounted,
@@ -42,7 +45,7 @@ export function MiniBarChart({
   const axes = useEditorialAxes(labels, values, format);
 
   return (
-    <ChartWrapper className={chartHeightClass(prominent)}>
+    <ChartTouchWrapper className={chartHeightClass(prominent)}>
       {mounted ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={chartMargin(prominent)}>
@@ -50,6 +53,7 @@ export function MiniBarChart({
             <EditorialXAxis config={axes} />
             <EditorialYAxis config={axes} />
             <Tooltip
+              {...CHART_AXIS_TOOLTIP}
               cursor={{ fill: "rgba(120, 113, 108, 0.08)" }}
               content={({ active, label, payload }) => (
                 <ChartTooltip
@@ -72,6 +76,6 @@ export function MiniBarChart({
       ) : (
         <ChartPlaceholder />
       )}
-    </ChartWrapper>
+    </ChartTouchWrapper>
   );
 }

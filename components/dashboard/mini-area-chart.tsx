@@ -17,7 +17,11 @@ import {
   EditorialYAxis,
   useEditorialAxes,
 } from "@/components/dashboard/editorial-axes";
-import { ChartWrapper } from "@/components/dashboard/chart-wrapper";
+import {
+  CHART_AXIS_TOOLTIP,
+  CHART_LINE_ACTIVE_DOT,
+  ChartTouchWrapper,
+} from "@/components/dashboard/chart-touch-wrapper";
 import {
   ChartPlaceholder,
   useChartMounted,
@@ -43,7 +47,7 @@ export function MiniAreaChart({
   const axes = useEditorialAxes(labels, values, format);
 
   return (
-    <ChartWrapper className={chartHeightClass(prominent)}>
+    <ChartTouchWrapper className={chartHeightClass(prominent)}>
       {mounted ? (
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={chartMargin(prominent)}>
@@ -57,6 +61,7 @@ export function MiniAreaChart({
             <EditorialXAxis config={axes} />
             <EditorialYAxis config={axes} />
             <Tooltip
+              {...CHART_AXIS_TOOLTIP}
               cursor={{ stroke: "#d6d3d1", strokeWidth: 1 }}
               content={({ active, label, payload }) => (
                 <ChartTooltip
@@ -74,6 +79,7 @@ export function MiniAreaChart({
               strokeWidth={prominent ? 2 : 1.5}
               fill={`url(#${fillId})`}
               dot={false}
+              activeDot={CHART_LINE_ACTIVE_DOT}
               isAnimationActive={false}
             />
           </AreaChart>
@@ -81,6 +87,6 @@ export function MiniAreaChart({
       ) : (
         <ChartPlaceholder />
       )}
-    </ChartWrapper>
+    </ChartTouchWrapper>
   );
 }

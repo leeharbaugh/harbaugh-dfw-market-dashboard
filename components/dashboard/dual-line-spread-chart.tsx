@@ -17,7 +17,11 @@ import {
   EditorialYAxis,
   useEditorialAxes,
 } from "@/components/dashboard/editorial-axes";
-import { ChartWrapper } from "@/components/dashboard/chart-wrapper";
+import {
+  CHART_AXIS_TOOLTIP,
+  CHART_LINE_ACTIVE_DOT,
+  ChartTouchWrapper,
+} from "@/components/dashboard/chart-touch-wrapper";
 import {
   ChartPlaceholder,
   useChartMounted,
@@ -79,7 +83,7 @@ export function DualLineSpreadChart({
       : { top: 6, right: 8, left: 2, bottom: 0 };
 
   return (
-    <ChartWrapper className={height}>
+    <ChartTouchWrapper className={height}>
       {mounted ? (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={merged} margin={margin}>
@@ -87,6 +91,7 @@ export function DualLineSpreadChart({
             <EditorialXAxis config={axes} />
             <EditorialYAxis config={axes} />
             <Tooltip
+              {...CHART_AXIS_TOOLTIP}
               cursor={{ stroke: "#d6d3d1", strokeWidth: 1 }}
               content={({ active, label, payload }) => (
                 <ChartTooltip
@@ -105,6 +110,7 @@ export function DualLineSpreadChart({
               stroke={colorPrimary}
               strokeWidth={compact ? 1.75 : 2}
               dot={false}
+              activeDot={CHART_LINE_ACTIVE_DOT}
               isAnimationActive={false}
             />
             <Line
@@ -114,6 +120,7 @@ export function DualLineSpreadChart({
               stroke={colorSecondary}
               strokeWidth={compact ? 1.75 : 2}
               dot={false}
+              activeDot={CHART_LINE_ACTIVE_DOT}
               isAnimationActive={false}
             />
           </LineChart>
@@ -121,6 +128,6 @@ export function DualLineSpreadChart({
       ) : (
         <ChartPlaceholder />
       )}
-    </ChartWrapper>
+    </ChartTouchWrapper>
   );
 }
