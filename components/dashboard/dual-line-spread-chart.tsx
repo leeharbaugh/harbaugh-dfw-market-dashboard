@@ -17,6 +17,7 @@ import {
   EditorialYAxis,
   useEditorialAxes,
 } from "@/components/dashboard/editorial-axes";
+import { ChartWrapper } from "@/components/dashboard/chart-wrapper";
 import {
   ChartPlaceholder,
   useChartMounted,
@@ -78,7 +79,7 @@ export function DualLineSpreadChart({
       : { top: 6, right: 8, left: 2, bottom: 0 };
 
   return (
-    <div className={`${height} w-full min-w-0`}>
+    <ChartWrapper className={height}>
       {mounted ? (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={merged} margin={margin}>
@@ -120,6 +121,6 @@ export function DualLineSpreadChart({
       ) : (
         <ChartPlaceholder />
       )}
-    </div>
+    </ChartWrapper>
   );
 }

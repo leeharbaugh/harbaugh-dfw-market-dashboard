@@ -17,6 +17,7 @@ import {
   EditorialYAxis,
   useEditorialAxes,
 } from "@/components/dashboard/editorial-axes";
+import { ChartWrapper } from "@/components/dashboard/chart-wrapper";
 import {
   ChartPlaceholder,
   useChartMounted,
@@ -42,7 +43,7 @@ export function MiniAreaChart({
   const axes = useEditorialAxes(labels, values, format);
 
   return (
-    <div className={`${chartHeightClass(prominent)} w-full min-w-0`}>
+    <ChartWrapper className={chartHeightClass(prominent)}>
       {mounted ? (
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={chartMargin(prominent)}>
@@ -80,6 +81,6 @@ export function MiniAreaChart({
       ) : (
         <ChartPlaceholder />
       )}
-    </div>
+    </ChartWrapper>
   );
 }
