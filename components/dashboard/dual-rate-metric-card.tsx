@@ -37,7 +37,12 @@ export function DualRateMetricCard({ metric }: DualRateMetricCardProps) {
             <div className="min-w-0 flex-1 overflow-visible">
               <h3 className="flex items-center gap-1.5 overflow-visible text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-500">
                 <span className="min-w-0">{metric.title}</span>
-                {helpText ? <MetricHelpTooltip text={helpText} /> : null}
+                {helpText ? (
+                  <MetricHelpTooltip
+                    text={helpText}
+                    metricName={metric.title}
+                  />
+                ) : null}
               </h3>
               {metric.subtitle ? (
                 <p className="mt-0.5 text-xs leading-snug text-stone-400">
