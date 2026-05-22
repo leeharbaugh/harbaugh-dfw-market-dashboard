@@ -16,41 +16,23 @@ const SITE_TITLE = "Harbaugh DFW Market Dashboard";
 const SITE_DESCRIPTION =
   "Live housing and economic market intelligence for DFW, Arlington, and Mansfield, including mortgage rates, Case-Shiller data, CPI, inventory, and local housing activity.";
 const PRODUCTION_ORIGIN = "https://dashboard.harbaughrealestate.com";
-const OG_IMAGE_PATH = "/og-dashboard.jpg";
-
-function resolveMetadataBase(): URL {
-  const fromEnv =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.SITE_URL ??
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : undefined);
-
-  if (!fromEnv) {
-    return new URL(PRODUCTION_ORIGIN);
-  }
-
-  try {
-    return new URL(fromEnv);
-  } catch {
-    return new URL(PRODUCTION_ORIGIN);
-  }
-}
-
-const metadataBase = resolveMetadataBase();
+const OG_IMAGE_URL = `${PRODUCTION_ORIGIN}/og-dashboard.jpg`;
 
 export const metadata: Metadata = {
-  metadataBase,
+  metadataBase: new URL(PRODUCTION_ORIGIN),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: PRODUCTION_ORIGIN,
+  },
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     type: "website",
-    url: "/",
+    url: PRODUCTION_ORIGIN,
     images: [
       {
-        url: OG_IMAGE_PATH,
+        url: OG_IMAGE_URL,
         alt: SITE_TITLE,
       },
     ],
@@ -59,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [OG_IMAGE_PATH],
+    images: [OG_IMAGE_URL],
   },
 };
 
