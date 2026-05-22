@@ -17,6 +17,7 @@ import {
   EditorialYAxis,
   useEditorialAxes,
 } from "@/components/dashboard/editorial-axes";
+import { ChartScrollLockWrapper } from "@/components/dashboard/chart-scroll-lock-wrapper";
 import {
   ChartPlaceholder,
   useChartMounted,
@@ -41,7 +42,7 @@ export function MiniTrendChart({
   const axes = useEditorialAxes(labels, values, format);
 
   return (
-    <div className={`${chartHeightClass(prominent)} w-full min-w-0`}>
+    <ChartScrollLockWrapper className={chartHeightClass(prominent)}>
       {mounted ? (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={chartMargin(prominent)}>
@@ -72,6 +73,6 @@ export function MiniTrendChart({
       ) : (
         <ChartPlaceholder />
       )}
-    </div>
+    </ChartScrollLockWrapper>
   );
 }
