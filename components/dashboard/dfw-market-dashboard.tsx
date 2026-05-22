@@ -122,7 +122,7 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
             <SectionHeading
               eyebrow="Local markets"
               title="Arlington & Mansfield housing market"
-              description="Side-by-side read on two high-volume corridors."
+              description="Side-by-side read on Arlington and Mansfield markets"
               id="arl-mans-heading"
             />
             <div className="grid gap-3 sm:grid-cols-2">

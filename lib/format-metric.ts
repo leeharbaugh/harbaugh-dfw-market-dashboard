@@ -56,3 +56,19 @@ export function formatDeltaPct(p: number | null): string {
   const text = `${p > 0 ? "+" : ""}${p.toFixed(1)}%`;
   return text.replace("-", "−");
 }
+
+export function formatDeltaAbsolute(p: number | null): string {
+  if (p == null || !Number.isFinite(p)) {
+    return "—";
+  }
+  const text = `${p > 0 ? "+" : ""}${p.toFixed(1)}`;
+  return text.replace("-", "−");
+}
+
+export function formatDeltaPoints(p: number | null): string {
+  if (p == null || !Number.isFinite(p)) {
+    return "—";
+  }
+  const text = `${p > 0 ? "+" : ""}${p.toFixed(2)} pts`;
+  return text.replace("-", "−");
+}

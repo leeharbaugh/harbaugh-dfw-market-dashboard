@@ -106,7 +106,7 @@ export const FRED_DASHBOARD_SERIES: readonly FredSeriesDefinition[] = [
     metricKeys: [DashboardMetricKey.GDP_US],
     description: "Real GDP (YoY % derived)",
     observationFrequency: "quarterly",
-    comparisonLabels: ["QoQ", "4-qtr", "12-qtr"],
+    comparisonLabels: ["QoQ", "YoY", "3-yr"],
     comparisonOffsets: [1, 4, 12],
   },
   {
@@ -124,8 +124,10 @@ export const FRED_DASHBOARD_SERIES: readonly FredSeriesDefinition[] = [
     observationStart: FRED_OBSERVATION_START,
     transform: "trillionsFromMillions",
     metricKeys: [DashboardMetricKey.NATIONAL_DEBT],
-    description: "Federal Debt: Total Public Debt",
-    observationFrequency: "monthly",
+    description: "Federal Debt: Total Public Debt (quarterly, millions USD)",
+    observationFrequency: "quarterly",
+    comparisonLabels: ["QoQ", "3-qtr", "YoY"],
+    comparisonOffsets: [1, 3, 4],
   },
   {
     id: "case_shiller_dfw",
@@ -179,7 +181,7 @@ export const FRED_DASHBOARD_SERIES: readonly FredSeriesDefinition[] = [
     description:
       "Real Gross Domestic Product: All Industry Total in Texas (quarterly, YoY % derived)",
     observationFrequency: "quarterly",
-    comparisonLabels: ["QoQ", "4-qtr", "12-qtr"],
+    comparisonLabels: ["QoQ", "YoY", "3-yr"],
     comparisonOffsets: [1, 4, 12],
   },
   {

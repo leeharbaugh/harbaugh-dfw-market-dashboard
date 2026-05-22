@@ -23,10 +23,13 @@ import {
   TITLE_TO_TRERC_METRIC_KEY,
   type TrercDashboardMetricKey,
 } from "@/lib/data/trerc-series-map";
+import type { ChangeKind } from "@/lib/dashboard/metric-changes";
 import {
   alignDualSeries,
   isoDateToUpdatedThrough,
+  observationsToChartPoints,
 } from "@/lib/data/fred-transforms";
+import type { FredSeriesDefinition } from "@/lib/data/fred-series-map";
 import {
   buildDashboardMetrics,
   type DashboardBundle,
@@ -36,11 +39,44 @@ import {
 import { isFredConfigured } from "@/lib/fred/client";
 import { isTrercLiveFetchEnabled } from "@/lib/trerc/client";
 
+function changeKindForFred(
+  definition: FredSeriesDefinition,
+  metric: DashboardMetric,
+): ChangeKind {
+  switch (definition.transform) {
+    case "cpiYearOverYear":
+      return "inflationFromIndex";
+    case "gdpYearOverYear":
+      return "points";
+    case "trillionsFromMillions":
+    case "trillionsFromBillions":
+      return "percent";
+    default:
+      if (metric.format === "pct2") return "points";
+      return metric.changeKind ?? "percent";
+  }
+}
+
+function changeBasePointsForFred(
+  success: FredSeriesLoadSuccess,
+  definition: FredSeriesDefinition,
+): DashboardMetric["changeBasePoints"] {
+  if (
+    definition.transform === "cpiYearOverYear" ||
+    definition.transform === "trillionsFromMillions" ||
+    definition.transform === "trillionsFromBillions"
+  ) {
+    return observationsToChartPoints(success.rawObservations);
+  }
+  return undefined;
+}
+
 function applyLiveMetric(
   metric: DashboardMetric,
   success: FredSeriesLoadSuccess,
 ): DashboardMetric {
   const { definition } = success;
+  const changeKind = changeKindForFred(definition, metric);
   return {
     ...metric,
     points: success.points,
@@ -51,6 +87,8 @@ function applyLiveMetric(
     statusNote: undefined,
     comparisonLabels: definition.comparisonLabels,
     comparisonOffsets: definition.comparisonOffsets,
+    changeKind,
+    changeBasePoints: changeBasePointsForFred(success, definition),
   };
 }
 
@@ -58,6 +96,7 @@ function applyTrercLiveMetric(
   metric: DashboardMetric,
   success: TrercSeriesLoadSuccess,
 ): DashboardMetric {
+  const isMonthsSupply = metric.format === "ratioMo";
   return {
     ...metric,
     points: success.points,
@@ -67,6 +106,7 @@ function applyTrercLiveMetric(
     latestObservationDate: success.lastDate,
     updatedThrough: isoDateToUpdatedThrough(success.lastDate),
     statusNote: undefined,
+    changeKind: isMonthsSupply ? "absolute" : metric.changeKind,
   };
 }
 

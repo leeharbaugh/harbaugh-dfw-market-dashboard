@@ -1,13 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import type { DashboardMetric } from "@/lib/dfw-dashboard-sample-data";
 import { DataStatusBadge } from "@/components/dashboard/data-status-badge";
+import { MetricHelpTooltip } from "@/components/dashboard/metric-help-tooltip";
 import { MetricChart } from "@/components/dashboard/metric-chart";
 import {
-  formatDeltaPct,
-  formatMetricValue,
-  pctChange,
-} from "@/lib/format-metric";
+  computeMetricChanges,
+  formatMetricChange,
+  inferChangeKind,
+  logMetricChangeAudit,
+} from "@/lib/dashboard/metric-changes";
+import { getMetricHelpText } from "@/lib/dashboard/metric-help";
+import { formatMetricValue } from "@/lib/format-metric";
 
 type MetricCardProps = {
   metric: DashboardMetric;
@@ -17,19 +22,18 @@ export function MetricCard({ metric }: MetricCardProps) {
   const pts = metric.points;
   const lastIdx = pts.length - 1;
   const last = pts[lastIdx]?.value ?? 0;
-  const [off1, off3, off12] = metric.comparisonOffsets ?? [1, 3, 12];
   const [label1, label3, label12] = metric.comparisonLabels ?? [
     "MoM",
     "3-mo",
     "YoY",
   ];
-  const prev1 = pts[lastIdx - off1]?.value;
-  const prev3 = pts[lastIdx - off3]?.value;
-  const prev12 = pts[lastIdx - off12]?.value;
+  const kind = inferChangeKind(metric);
+  const changes = computeMetricChanges(metric);
+  const helpText = getMetricHelpText(metric.title);
 
-  const mom = pctChange(last, prev1 ?? last);
-  const three = pctChange(last, prev3 ?? last);
-  const yoy = pctChange(last, prev12 ?? last);
+  useEffect(() => {
+    logMetricChangeAudit(metric);
+  }, [metric]);
 
   const badgeTitle = [
     metric.fredSeriesId ? `FRED: ${metric.fredSeriesId}` : null,
@@ -43,11 +47,12 @@ export function MetricCard({ metric }: MetricCardProps) {
     .join(" · ");
 
   return (
-    <article className="group flex flex-col rounded-2xl border border-stone-200/80 bg-white/70 p-3.5 shadow-sm shadow-stone-900/[0.04] ring-1 ring-stone-900/[0.02] backdrop-blur-sm transition-shadow hover:shadow-md hover:shadow-stone-900/[0.06] sm:p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-500">
-            {metric.title}
+    <article className="group flex flex-col overflow-visible rounded-2xl border border-stone-200/80 bg-white/70 p-3.5 shadow-sm shadow-stone-900/[0.04] ring-1 ring-stone-900/[0.02] backdrop-blur-sm transition-shadow hover:shadow-md hover:shadow-stone-900/[0.06] sm:p-4">
+      <div className="flex items-start justify-between gap-2 overflow-visible">
+        <div className="min-w-0 flex-1 overflow-visible">
+          <h3 className="flex items-center gap-1.5 overflow-visible text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-stone-500">
+            <span className="min-w-0">{metric.title}</span>
+            {helpText ? <MetricHelpTooltip text={helpText} /> : null}
           </h3>
           {metric.subtitle ? (
             <p className="mt-0.5 text-xs leading-snug text-stone-400">
@@ -68,15 +73,21 @@ export function MetricCard({ metric }: MetricCardProps) {
         <dl className="flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] text-stone-500 tabular-nums">
           <div className="flex items-baseline gap-1.5">
             <dt className="font-medium text-stone-400">{label1}</dt>
-            <dd className="text-stone-700">{formatDeltaPct(mom)}</dd>
+            <dd className="text-stone-700">
+              {formatMetricChange(changes.short, kind)}
+            </dd>
           </div>
           <div className="flex items-baseline gap-1.5">
             <dt className="font-medium text-stone-400">{label3}</dt>
-            <dd className="text-stone-700">{formatDeltaPct(three)}</dd>
+            <dd className="text-stone-700">
+              {formatMetricChange(changes.mid, kind)}
+            </dd>
           </div>
           <div className="flex items-baseline gap-1.5">
             <dt className="font-medium text-stone-400">{label12}</dt>
-            <dd className="text-stone-700">{formatDeltaPct(yoy)}</dd>
+            <dd className="text-stone-700">
+              {formatMetricChange(changes.long, kind)}
+            </dd>
           </div>
         </dl>
       </div>

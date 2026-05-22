@@ -1,3 +1,4 @@
+import { inferChangeKind } from "@/lib/dashboard/metric-changes";
 import type { DashboardMetric } from "@/lib/dfw-dashboard-sample-data";
 
 export type MetricDataStatus = "live" | "fallback" | "error";
@@ -48,12 +49,16 @@ export type DashboardMetricDraft = Omit<DashboardMetric, "dataStatus"> &
 
 export function withFallbackMetadata(metric: DashboardMetricDraft): DashboardMetric {
   const lastLabel = metric.points[metric.points.length - 1]?.label;
-  return {
+  const draft = {
     ...metric,
-    dataStatus: "fallback",
+    dataStatus: "fallback" as const,
     updatedThrough: lastLabel
       ? chartLabelToUpdatedThrough(lastLabel)
       : metric.updatedThrough,
+  };
+  return {
+    ...draft,
+    changeKind: metric.changeKind ?? inferChangeKind(draft),
   };
 }
 

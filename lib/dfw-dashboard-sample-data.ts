@@ -2,6 +2,7 @@ import {
   annotateBundleFallback,
   type DashboardMetricDraft,
 } from "@/lib/dashboard/metric-metadata";
+import type { ChangeKind } from "@/lib/dashboard/metric-changes";
 
 export type ChartPoint = { label: string; value: number };
 
@@ -46,6 +47,10 @@ export type DashboardMetric = {
   comparisonLabels?: [string, string, string];
   /** Periods back from latest point for each comparison (defaults: 1 / 3 / 12). */
   comparisonOffsets?: [number, number, number];
+  /** How MoM / 3-mo / YoY deltas are calculated. */
+  changeKind?: ChangeKind;
+  /** Raw level series for change math (e.g. CPI index, debt in millions). */
+  changeBasePoints?: ChartPoint[];
 };
 
 export type DashboardBundle = {
