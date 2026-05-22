@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Harbaugh DFW Market Dashboard",
   description:
-    "Prototype dashboard for DFW housing, rates, and regional economic context.",
+    "DFW housing, mortgage rates, and regional economic context for North Texas.",
 };
 
 export default function RootLayout({

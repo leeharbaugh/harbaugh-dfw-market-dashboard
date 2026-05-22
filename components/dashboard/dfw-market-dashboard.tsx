@@ -79,15 +79,12 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <header className="flex flex-col gap-4 border-b border-stone-200/80 pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 space-y-2">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-stone-400">
-              Prototype · sample data
-            </p>
             <h1 className="text-balance font-sans text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
               Harbaugh DFW Market Dashboard
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-stone-500 sm:text-base">
               A compact read on North Texas housing, mortgage markets, and the
-              broader economy. Figures shown are illustrative only.
+              broader economy.
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
@@ -98,7 +95,7 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
               disabled={refreshing}
               className="inline-flex items-center justify-center rounded-full border border-[#c9be92]/55 bg-[#d8cfa8]/85 px-4 py-2 text-sm font-medium text-stone-800 shadow-sm shadow-stone-900/5 transition hover:border-[#b8aa7a]/70 hover:bg-[#cdc39a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px disabled:opacity-60"
             >
-              {refreshing ? "Refreshing…" : "Refresh sample data"}
+              {refreshing ? "Refreshing…" : "Refresh Data"}
             </button>
           </div>
         </header>
@@ -108,7 +105,7 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
             <SectionHeading
               eyebrow="Housing"
               title="DFW housing market"
-              description="Metro-wide resale trends in this sample window."
+              description="Metro-wide resale trends and pricing."
               id="dfw-housing-heading"
             />
             <div className="grid gap-3 sm:grid-cols-2">
@@ -167,16 +164,13 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
           <section aria-labelledby="notes-heading">
             <SectionHeading
               eyebrow="Narrative"
-              title="Market notes"
-              description="Manual commentary — edit each period before publishing."
+              title="Market Notes"
+              description="Current observations and context for the latest market data."
               id="notes-heading"
             />
             <div className="rounded-2xl border border-stone-200/80 bg-white/70 p-5 shadow-sm shadow-stone-900/[0.04] ring-1 ring-stone-900/[0.02] backdrop-blur-sm sm:p-6">
               <p className="text-sm leading-relaxed text-stone-500">
-                Add your market notes here. This section is intended for manual
-                narrative updates each reporting period — inventory tone, rate
-                sensitivity, and hyperlocal observations for Arlington and
-                Mansfield.
+                5/21/2026: Mortgage rates have continued to move higher. While home prices metro-wide have declined slightly, Mansfield and Arlington have seen price increases. In a positive sign, home sales have returned to 2022 levels, when rates began climbing.
               </p>
             </div>
           </section>
@@ -184,10 +178,11 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
 
         <footer className="mt-14 border-t border-stone-200/80 pt-8 text-xs leading-relaxed text-stone-400">
           <p>
-            Harbaugh DFW Market Dashboard is a non-production interface. All
-            metrics, charts, and commentary use fabricated sample data for layout
-            and interaction testing only. Do not use for decisions, disclosures,
-            or valuation.
+            Sources: Freddie Mac Primary Mortgage Market Survey, Federal Reserve
+            Economic Data (FRED), S&P CoreLogic Case-Shiller, and the Texas Real
+            Estate Research Center at Texas A&M University. Data may be
+            preliminary, revised, seasonally adjusted, or reported on different
+            update schedules depending on the source.
           </p>
         </footer>
       </div>
