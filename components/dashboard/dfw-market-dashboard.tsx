@@ -78,7 +78,13 @@ export function DfwMarketDashboard({ initialData }: DfwMarketDashboardProps) {
     <div className="min-h-full bg-[#f5f3ef] font-sans text-stone-800">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <header className="flex flex-col gap-4 border-b border-stone-200/80 pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0 space-y-2">
+          <div className="min-w-0 space-y-3">
+            <a
+              href="https://harbaughrealestate.com"
+              className="inline-flex w-fit items-center text-xs font-medium tracking-wide text-[#4a5568] transition-colors duration-150 hover:text-[#2c3440] focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/70"
+            >
+              ← Harbaugh Real Estate
+            </a>
             <h1 className="text-balance font-sans text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
               Harbaugh DFW Market Dashboard
             </h1>
