@@ -4,3 +4,7 @@ export {
   CHART_AXIS_TOOLTIP,
   CHART_LINE_ACTIVE_DOT,
 } from "@/components/dashboard/chart-touch-wrapper";
+export type {
+  ChartTouchTooltipConfig,
+  TouchTooltipEntry,
+} from "@/components/dashboard/chart-touch-wrapper";
