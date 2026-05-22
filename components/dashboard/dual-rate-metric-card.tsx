@@ -103,7 +103,7 @@ export function DualRateMetricCard({ metric }: DualRateMetricCardProps) {
             </span>
           </div>
         </div>
-        <div className="w-full min-w-0 flex-1 overflow-visible">
+        <div className="w-full min-w-0 flex-1">
           <MetricChart metric={metric} compact={false} prominent />
         </div>
       </div>
