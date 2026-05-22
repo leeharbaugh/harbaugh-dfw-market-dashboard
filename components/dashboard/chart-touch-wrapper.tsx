@@ -10,8 +10,8 @@ import {
   type ReactNode,
   type TouchEvent,
 } from "react";
-import { ChartTooltip } from "@/components/dashboard/chart-tooltip";
 import { ChartTouchProvider } from "@/components/dashboard/chart-touch-context";
+import { MobileChartTooltip } from "@/components/dashboard/mobile-chart-tooltip";
 import {
   resolveChartTouchIndex,
   type ChartPlotMargin,
@@ -220,7 +220,7 @@ export function ChartTouchWrapper({
 
   const onTouchLayerPointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (!isTouchPointer(event.pointerType)) return;
-    releaseTouch();
+    // Touchend releases touch state; pointerup on mobile can fire early and hide the tooltip.
   };
 
   const onTouchLayerClick = (event: MouseEvent<HTMLDivElement>) => {
@@ -263,39 +263,72 @@ export function ChartTouchWrapper({
     });
   }, [labels.length]);
 
-  const mobilePayload =
-    touchActive && activeIndex != null
-      ? getEntries(activeIndex).map((entry) => ({
-          value: entry.value,
-          name: entry.name,
-          color: entry.color,
-        }))
-      : [];
+  const activeMobileTooltip =
+    touchActive &&
+    activeIndex != null &&
+    activeIndex >= 0 &&
+    activeIndex < labels.length;
 
-  const tooltipLeft =
-    activeIndex != null
-      ? Math.max(
-          4,
-          Math.min(cursorX - 40, (rootRef.current?.clientWidth ?? 200) - 140),
-        )
-      : 0;
+  const mobileEntries =
+    activeMobileTooltip ? getEntries(activeIndex) : [];
 
-  const primaryEntry =
-    activeIndex != null ? getEntries(activeIndex)[0] : undefined;
+  const activeLabel = activeMobileTooltip
+    ? (labels[activeIndex] ?? "—")
+    : "—";
+
+  const primaryEntry = mobileEntries[0];
   const debugValue =
     primaryEntry != null
       ? formatTooltipValue(primaryEntry.value, format)
       : "—";
-  const debugLabel =
-    activeIndex != null ? (labels[activeIndex] ?? "—") : "—";
+
+  const containerWidth = rootRef.current?.clientWidth ?? 200;
+  const tooltipTop = margin.top + 4;
+  const tooltipLeft = activeMobileTooltip
+    ? Math.max(4, Math.min(cursorX - 48, containerWidth - 148))
+    : containerWidth / 2 - 60;
+  /** While debugging: top-center so the box is impossible to miss. */
+  const tooltipPosition = CHART_TOUCH_DEBUG
+    ? {
+        left: "50%",
+        top: tooltipTop,
+        transform: "translateX(-50%)",
+      }
+    : {
+        left: tooltipLeft,
+        top: tooltipTop,
+      };
+
+  useEffect(() => {
+    if (!CHART_TOUCH_DEBUG || !activeMobileTooltip) return;
+    console.log("[chart-touch] tooltip render", {
+      activeMobileTooltip,
+      activeIndex,
+      label: activeLabel,
+      value: debugValue,
+      tooltipPosition,
+      cursorX,
+      entryCount: mobileEntries.length,
+    });
+  }, [
+    activeMobileTooltip,
+    activeIndex,
+    activeLabel,
+    debugValue,
+    tooltipPosition,
+    cursorX,
+    mobileEntries.length,
+  ]);
 
   return (
     <ChartTouchProvider touchActive={touchActive}>
       <div
         ref={rootRef}
-        className={`relative ${className} w-full min-w-0`}
+        className={`relative overflow-visible ${className} w-full min-w-0`}
       >
-        <div className="relative h-full w-full min-h-0">{children}</div>
+        <div className="relative h-full w-full min-h-0 overflow-visible">
+          {children}
+        </div>
 
         {/* Captures touch on hover-none devices; desktop hover passes through to Recharts */}
         <div
@@ -313,9 +346,9 @@ export function ChartTouchWrapper({
           onClick={onTouchLayerClick}
         />
 
-        {touchActive && activeIndex != null && labels[activeIndex] != null ? (
+        {activeMobileTooltip ? (
           <div
-            className="pointer-events-none absolute inset-0 z-30"
+            className="pointer-events-none absolute inset-0 z-[9999] overflow-visible"
             aria-hidden
           >
             <div
@@ -327,13 +360,16 @@ export function ChartTouchWrapper({
               }}
             />
             <div
-              className="absolute max-w-[min(85%,10rem)]"
-              style={{ left: tooltipLeft, top: margin.top + 4 }}
+              className="absolute z-[9999] max-w-[10rem]"
+              style={tooltipPosition}
             >
-              <ChartTooltip
-                active
-                label={labels[activeIndex]}
-                payload={mobilePayload}
+              <MobileChartTooltip
+                label={activeLabel}
+                entries={
+                  mobileEntries.length > 0
+                    ? mobileEntries
+                    : [{ value: 0, name: "Value" }]
+                }
                 format={format}
                 formatSecondary={formatSecondary}
               />
@@ -354,8 +390,9 @@ export function ChartTouchWrapper({
                   {Math.round(debug.containerWidth)}
                 </span>
                 <span className="block">
-                  Touch index: {debug.index} / Date: {debugLabel} / Value:{" "}
-                  {debugValue}
+                  Touch index: {debug.index} / Date: {activeLabel} / Value:{" "}
+                  {debugValue} / tooltip:{" "}
+                  {activeMobileTooltip ? "ON" : "OFF"}
                 </span>
               </>
             ) : (

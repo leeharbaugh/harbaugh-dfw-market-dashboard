@@ -98,7 +98,7 @@ export function MetricCard({ metric }: MetricCardProps) {
         </p>
       ) : null}
 
-      <div className="mt-2 w-full min-w-0">
+      <div className="mt-2 w-full min-w-0 overflow-visible">
         <MetricChart metric={metric} prominent />
       </div>
 
