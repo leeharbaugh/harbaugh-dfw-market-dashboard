@@ -11,15 +11,32 @@ export type ChartTouchGeometry = {
   yAxisWidth: number;
 };
 
+export type ChartTouchResolution = {
+  index: number;
+  cursorX: number;
+  relativeX: number;
+  containerWidth: number;
+  plotWidth: number;
+};
+
 export function resolveChartTouchIndex(
   clientX: number,
   rect: DOMRect,
   geometry: ChartTouchGeometry,
-): { index: number; cursorX: number } {
+): ChartTouchResolution {
   const { pointCount, margin, yAxisWidth } = geometry;
 
+  const containerWidth = rect.width;
+
   if (pointCount <= 0) {
-    return { index: 0, cursorX: yAxisWidth + margin.left };
+    const cursorX = yAxisWidth + margin.left;
+    return {
+      index: 0,
+      cursorX,
+      relativeX: 0,
+      containerWidth,
+      plotWidth: 0,
+    };
   }
 
   const plotLeft = rect.left + yAxisWidth + margin.left;
@@ -27,16 +44,30 @@ export function resolveChartTouchIndex(
   const plotWidth = plotRight - plotLeft;
 
   if (plotWidth <= 0) {
-    return { index: 0, cursorX: yAxisWidth + margin.left };
+    const cursorX = yAxisWidth + margin.left;
+    return {
+      index: 0,
+      cursorX,
+      relativeX: 0,
+      containerWidth,
+      plotWidth: 0,
+    };
   }
 
   const clampedX = Math.max(plotLeft, Math.min(plotRight, clientX));
-  const ratio = (clampedX - plotLeft) / plotWidth;
+  const relativeX = clampedX - plotLeft;
+  const ratio = relativeX / plotWidth;
   const maxIndex = Math.max(0, pointCount - 1);
   const index = Math.round(ratio * maxIndex);
   const snappedX =
     plotLeft + (maxIndex > 0 ? (index / maxIndex) * plotWidth : 0);
   const cursorX = snappedX - rect.left;
 
-  return { index, cursorX };
+  return {
+    index,
+    cursorX,
+    relativeX,
+    containerWidth,
+    plotWidth,
+  };
 }
