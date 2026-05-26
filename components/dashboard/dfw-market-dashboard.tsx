@@ -196,6 +196,9 @@ export function DfwMarketDashboard({
             preliminary, revised, seasonally adjusted, or reported on different
             update schedules depending on the source.
           </p>
+          <p className="mt-8 text-center text-[0.7rem] tracking-wide text-stone-400">
+            Copyright © {new Date().getFullYear()} Harbaugh Real Estate
+          </p>
         </footer>
       </div>
     </div>
