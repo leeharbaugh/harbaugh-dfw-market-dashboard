@@ -1,6 +1,5 @@
 import "server-only";
 
-import { annotateBundleFallback } from "@/lib/dashboard/metric-metadata";
 import {
   fetchFredSeriesRegistry,
   getSeriesResultByMetricKey,
