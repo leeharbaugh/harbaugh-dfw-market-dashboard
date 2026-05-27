@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { loadDashboardData } from "@/lib/data/load-dashboard-data";
@@ -88,6 +89,18 @@ async function handle(request: Request): Promise<Response> {
     const data = await loadDashboardData();
     const record = await generateMarketNotes(data, { source });
     await saveMarketNotes(record);
+
+    // Drop any cached RSC payload for the dashboard so the very next
+    // page request re-runs the server component and picks up the
+    // newly-written notes from shared storage.
+    try {
+      revalidatePath("/");
+    } catch (error) {
+      console.warn(
+        "[market-notes] revalidatePath('/') failed:",
+        error instanceof Error ? error.message : error,
+      );
+    }
 
     console.log(
       `[market-notes] Regenerated (${source}) via ${record.model} at ${record.generatedAt}`,
