@@ -58,29 +58,11 @@ function isRecord(value: unknown): value is MarketNotesRecord {
  * The Blob store is PRIVATE. Market Notes are read server-side from the
  * dashboard page and re-served to the browser as plain props, so the
  * underlying blob never needs to be publicly fetchable.
- *
- * Implementation notes:
- *  - Writes use `access: "private"` and `BLOB_READ_WRITE_TOKEN` to
- *    authenticate. We keep a single stable pathname
- *    (`market-notes/current.json`) with `addRandomSuffix: false` +
- *    `allowOverwrite: true` so the "current" record always lives at
- *    the same slot.
- *  - Reads use the SDK's `get(pathname, { access: "private", ... })`
- *    which streams the blob using the read-write token — a plain
- *    `fetch(url)` on a private blob would 401. `useCache: false`
- *    bypasses the Vercel CDN cache so the dashboard sees freshly
- *    regenerated content immediately. A missing blob (before the
- *    first generation) returns `null` so the dashboard can render
- *    its graceful fallback.
- *  - `cacheControlMaxAge: 60` is the minimum allowed by Vercel Blob.
  */
 function createVercelBlobStorage(token: string): MarketNotesStorage {
   return {
     kind: "vercel-blob",
     async read() {
-      console.log(
-        `[market-notes] read: adapter=vercel-blob path=${BLOB_PATHNAME}`,
-      );
       try {
         const result = await get(BLOB_PATHNAME, {
           access: "private",
@@ -88,56 +70,45 @@ function createVercelBlobStorage(token: string): MarketNotesStorage {
           token,
         });
         if (!result || result.statusCode !== 200) {
-          console.log(
-            `[market-notes] read: vercel-blob returned no body (statusCode=${result?.statusCode ?? "null"})`,
-          );
           return null;
         }
         const text = await new Response(result.stream).text();
         const parsed = JSON.parse(text) as unknown;
         if (!isRecord(parsed)) {
-          console.warn(
-            "[market-notes] read: vercel-blob returned data in an unexpected shape; ignoring",
+          console.error(
+            "[market-notes] Storage read failed: invalid record shape",
           );
           return null;
         }
-        console.log(
-          `[market-notes] read: vercel-blob hit (generatedAt=${parsed.generatedAt}, source=${parsed.source}, model=${parsed.model})`,
-        );
         return parsed;
       } catch (error) {
         if (error instanceof BlobNotFoundError) {
-          console.log(
-            "[market-notes] read: vercel-blob miss (BlobNotFoundError)",
-          );
           return null;
         }
         console.error(
-          "[market-notes] read: vercel-blob failed:",
+          "[market-notes] Storage read failed:",
           error instanceof Error ? error.message : error,
         );
         return null;
       }
     },
     async write(record) {
-      console.log(
-        `[market-notes] write: adapter=vercel-blob path=${BLOB_PATHNAME} bytes=${record.notes.length} source=${record.source}`,
-      );
-      const result = await put(
-        BLOB_PATHNAME,
-        JSON.stringify(record, null, 2),
-        {
+      try {
+        await put(BLOB_PATHNAME, JSON.stringify(record, null, 2), {
           access: "private",
           addRandomSuffix: false,
           allowOverwrite: true,
           contentType: "application/json",
           cacheControlMaxAge: 60,
           token,
-        },
-      );
-      console.log(
-        `[market-notes] write: vercel-blob ok pathname=${result.pathname}`,
-      );
+        });
+      } catch (error) {
+        console.error(
+          "[market-notes] Storage write failed:",
+          error instanceof Error ? error.message : error,
+        );
+        throw error;
+      }
     },
   };
 }
@@ -150,42 +121,42 @@ function createFilesystemStorage(filePath: string): MarketNotesStorage {
   return {
     kind: `filesystem:${absolutePath}`,
     async read() {
-      console.log(`[market-notes] read: adapter=filesystem path=${absolutePath}`);
       try {
         const raw = await fs.readFile(absolutePath, "utf8");
         const parsed = JSON.parse(raw) as unknown;
         if (!isRecord(parsed)) {
-          console.warn(
-            "[market-notes] read: filesystem returned data in an unexpected shape; ignoring",
+          console.error(
+            "[market-notes] Storage read failed: invalid record shape",
           );
           return null;
         }
-        console.log(
-          `[market-notes] read: filesystem hit (generatedAt=${parsed.generatedAt}, source=${parsed.source})`,
-        );
         return parsed;
       } catch (error) {
         const code = (error as NodeJS.ErrnoException)?.code;
-        if (code === "ENOENT") {
-          console.log("[market-notes] read: filesystem miss (ENOENT)");
-          return null;
-        }
+        if (code === "ENOENT") return null;
         console.error(
-          "[market-notes] read: filesystem failed:",
+          "[market-notes] Storage read failed:",
           error instanceof Error ? error.message : error,
         );
         return null;
       }
     },
     async write(record) {
-      console.log(
-        `[market-notes] write: adapter=filesystem path=${absolutePath} source=${record.source}`,
-      );
-      const dir = path.dirname(absolutePath);
-      await fs.mkdir(dir, { recursive: true });
-      const serialized = JSON.stringify(record, null, 2);
-      await fs.writeFile(absolutePath, serialized, "utf8");
-      console.log("[market-notes] write: filesystem ok");
+      try {
+        const dir = path.dirname(absolutePath);
+        await fs.mkdir(dir, { recursive: true });
+        await fs.writeFile(
+          absolutePath,
+          JSON.stringify(record, null, 2),
+          "utf8",
+        );
+      } catch (error) {
+        console.error(
+          "[market-notes] Storage write failed:",
+          error instanceof Error ? error.message : error,
+        );
+        throw error;
+      }
     },
   };
 }
@@ -217,37 +188,24 @@ export function getMarketNotesStorage(): MarketNotesStorage {
   const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (blobToken) {
     cachedStorage = createVercelBlobStorage(blobToken);
-    console.log(
-      `[market-notes] storage adapter selected: ${cachedStorage.kind}`,
-    );
     return cachedStorage;
   }
 
   const configuredPath = process.env.MARKET_NOTES_FILE?.trim();
   if (configuredPath) {
     cachedStorage = createFilesystemStorage(configuredPath);
-    console.log(
-      `[market-notes] storage adapter selected: ${cachedStorage.kind}`,
-    );
     return cachedStorage;
   }
 
   if (process.env.NODE_ENV !== "production") {
     cachedStorage = createFilesystemStorage(DEFAULT_FILE_PATH);
-    console.log(
-      `[market-notes] storage adapter selected: ${cachedStorage.kind}`,
-    );
     return cachedStorage;
   }
 
   console.warn(
-    "[market-notes] No persistent storage configured. Falling back to " +
-      "in-memory adapter — notes will not survive cold starts. Set " +
-      "BLOB_READ_WRITE_TOKEN (recommended on Vercel) or MARKET_NOTES_FILE " +
-      "to enable durable persistence.",
+    "[market-notes] No persistent storage configured; using in-memory fallback",
   );
   cachedStorage = createMemoryStorage();
-  console.log(`[market-notes] storage adapter selected: ${cachedStorage.kind}`);
   return cachedStorage;
 }
 
@@ -257,7 +215,7 @@ export async function readLatestMarketNotes(): Promise<MarketNotesRecord | null>
     return await getMarketNotesStorage().read();
   } catch (error) {
     console.error(
-      "[market-notes] Failed to read latest notes:",
+      "[market-notes] Storage read failed:",
       error instanceof Error ? error.message : error,
     );
     return null;

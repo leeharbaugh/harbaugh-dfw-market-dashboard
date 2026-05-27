@@ -283,37 +283,6 @@ function applyFredToNational(
   });
 }
 
-function logDashboardDataAudit(bundle: DashboardBundle): void {
-  const all = [
-    ...bundle.dfw,
-    ...bundle.arlington,
-    ...bundle.mansfield,
-    ...bundle.national,
-    ...bundle.regional,
-  ];
-
-  console.log("[dashboard] Metric data source audit:");
-  for (const m of all) {
-    const last = m.points[m.points.length - 1]?.value;
-    console.log(
-      `  • ${m.title}`,
-      `| status=${m.dataStatus}`,
-      m.fredSeriesId ? `| FRED=${m.fredSeriesId}` : "",
-      m.trercSeriesId ? `| TRERC=${m.trercSeriesId}` : "",
-      m.updatedThrough ? `| through=${m.updatedThrough}` : "",
-      last != null ? `| latest=${last}` : "",
-      m.statusNote ? `| note=${m.statusNote}` : "",
-    );
-  }
-
-  const live = all.filter((m) => m.dataStatus === "live").length;
-  const fallback = all.filter((m) => m.dataStatus === "fallback").length;
-  const error = all.filter((m) => m.dataStatus === "error").length;
-  console.log(
-    `[dashboard] Summary: ${live} live, ${fallback} fallback, ${error} error (${all.length} total)`,
-  );
-}
-
 /**
  * Builds the full dashboard bundle, overlaying live FRED data on national
  * metrics and live TRERC housing data on DFW / Arlington / Mansfield when available.
@@ -343,7 +312,6 @@ export async function loadDashboardData(
     regional,
   };
 
-  logDashboardDataAudit(bundle);
   return bundle;
 }
 

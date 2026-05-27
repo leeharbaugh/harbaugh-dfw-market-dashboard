@@ -76,7 +76,6 @@ export async function fetchTrercPageHtml(pageUrl: string): Promise<{
   html: string;
   exportLinks: TrercExportLink[];
 }> {
-  console.log(`[trerc] Requested page URL: ${pageUrl}`);
   let response: Response;
   try {
     response = await fetch(pageUrl, {
@@ -90,15 +89,8 @@ export async function fetchTrercPageHtml(pageUrl: string): Promise<{
     );
   }
 
-  console.log(`[trerc] Page response status: ${response.status} (${pageUrl})`);
   const html = await response.text();
   const exportLinks = discoverTrercExportLinks(html);
-  console.log(
-    `[trerc] Detected export controls for ${pageUrl}:`,
-    exportLinks.length
-      ? exportLinks.map((l) => `${l.kind}:${l.control}`).join(", ")
-      : "(none — table data uses JSON API instead of direct file URLs)",
-  );
   return { status: response.status, html, exportLinks };
 }
 
@@ -140,7 +132,7 @@ type TrercTableApiResponse = {
 
 /**
  * Loads monthly housing-activity table rows for one geography via TRERC JSON API.
- * Also fetches the public page once to log CSV/Excel UI controls (no direct file URLs).
+ * Also fetches the public page once to discover export-link metadata (no direct file URLs).
  */
 export async function fetchTrercGeographyHousingData(
   pageUrl: string,
@@ -156,9 +148,6 @@ export async function fetchTrercGeographyHousingData(
     geoData,
     tableTypes: { period: "monthly" },
   };
-
-  console.log(`[trerc] Requested table URL: ${TRERC_HOUSING_ACTIVITY_TABLE_URL}`);
-  console.log(`[trerc] Table POST geoData:`, geoData);
 
   let response: Response;
   try {
@@ -179,10 +168,6 @@ export async function fetchTrercGeographyHousingData(
     );
   }
 
-  console.log(
-    `[trerc] Table response status: ${response.status} (${geoData.geoName})`,
-  );
-
   const text = await response.text();
   if (!response.ok) {
     throw new TrercFetchError(
@@ -201,28 +186,7 @@ export async function fetchTrercGeographyHousingData(
   }
 
   const rawRows = parsed.rowData ?? [];
-  console.log(
-    `[trerc] Parsed raw rows for ${geoData.geoName}: ${rawRows.length} monthly records`,
-  );
-  if (rawRows.length > 0) {
-    console.log(`[trerc] First raw row (${geoData.geoName}):`, rawRows[0]);
-    console.log(
-      `[trerc] Last raw row (${geoData.geoName}):`,
-      rawRows[rawRows.length - 1],
-    );
-  }
-
   const observationsByField = normalizeTableRows(rawRows, TABLE_FIELDS);
-  for (const field of TABLE_FIELDS) {
-    const series = observationsByField[field];
-    console.log(
-      `[trerc] Normalized ${geoData.geoName} ${field}: ${series.length} points`,
-    );
-    if (series.length > 0) {
-      console.log(`[trerc]   first:`, series[0]);
-      console.log(`[trerc]   last:`, series[series.length - 1]);
-    }
-  }
 
   if (
     !observationsByField.median_close_price?.length &&
@@ -230,9 +194,7 @@ export async function fetchTrercGeographyHousingData(
     !observationsByField.closed_listings?.length
   ) {
     console.warn(
-      `[trerc] WARNING: No usable monthly observations after ${TRERC_OBSERVATION_START} for ${geoData.geoName}. ` +
-        `Page export buttons are client-side only (AG Grid); stable CSV/XLS endpoints were not found. ` +
-        `Verify geo IDs at ${pageUrl} if this persists.`,
+      `[trerc] No usable observations for ${geoData.geoName} after ${TRERC_OBSERVATION_START}`,
     );
   }
 

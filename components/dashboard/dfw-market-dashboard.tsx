@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { DualRateMetricCard } from "@/components/dashboard/dual-rate-metric-card";
 import { MarketNotesPanel } from "@/components/dashboard/market-notes-panel";
 import { MetricCard } from "@/components/dashboard/metric-card";
@@ -34,26 +34,6 @@ export function DfwMarketDashboard({
   // "Refresh Data" only re-fetches the dashboard metrics; the AI-written
   // notes update only on the monthly cron or a protected manual route.
   // The dashboard simply renders whatever was last saved in shared storage.
-
-  useEffect(() => {
-    const metrics = [
-      ...data.dfw,
-      ...data.arlington,
-      ...data.mansfield,
-      ...data.national,
-      ...data.regional,
-    ];
-    console.log("[dashboard] Client metric status");
-    console.table(
-      metrics.map((m) => ({
-        title: m.title,
-        status: m.dataStatus,
-        fred: m.fredSeriesId ?? "—",
-        updatedThrough: m.updatedThrough ?? "—",
-        latest: m.points[m.points.length - 1]?.value,
-      })),
-    );
-  }, [data]);
 
   const refresh = useCallback(async () => {
     const nextKey = refreshKey + 1;

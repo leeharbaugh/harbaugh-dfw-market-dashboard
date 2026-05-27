@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import type { DashboardMetric } from "@/lib/dfw-dashboard-sample-data";
 import { DataStatusBadge } from "@/components/dashboard/data-status-badge";
 import { MetricHelpTooltip } from "@/components/dashboard/metric-help-tooltip";
@@ -9,7 +8,6 @@ import {
   computeMetricChanges,
   formatMetricChange,
   inferChangeKind,
-  logMetricChangeAudit,
 } from "@/lib/dashboard/metric-changes";
 import { getMetricHelpText } from "@/lib/dashboard/metric-help";
 import { formatMetricValue } from "@/lib/format-metric";
@@ -30,10 +28,6 @@ export function MetricCard({ metric }: MetricCardProps) {
   const kind = inferChangeKind(metric);
   const changes = computeMetricChanges(metric);
   const helpText = getMetricHelpText(metric.title);
-
-  useEffect(() => {
-    logMetricChangeAudit(metric);
-  }, [metric]);
 
   const badgeTitle = [
     metric.fredSeriesId ? `FRED: ${metric.fredSeriesId}` : null,

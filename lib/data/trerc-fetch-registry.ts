@@ -122,9 +122,6 @@ export async function fetchTrercSeriesRegistry(): Promise<
   const registry = new Map<string, TrercSeriesLoadResult>();
 
   if (!isTrercLiveFetchEnabled()) {
-    console.log(
-      "[trerc] TRERC_LIVE_DATA disabled — TRERC metrics use sample fallback",
-    );
     for (const definition of TRERC_DASHBOARD_SERIES) {
       registry.set(definition.id, {
         ok: false,

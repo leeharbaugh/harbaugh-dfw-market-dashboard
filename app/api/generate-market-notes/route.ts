@@ -102,10 +102,6 @@ async function handle(request: Request): Promise<Response> {
       );
     }
 
-    console.log(
-      `[market-notes] Regenerated (${source}) via ${record.model} at ${record.generatedAt}`,
-    );
-
     return NextResponse.json({
       ok: true,
       source,
