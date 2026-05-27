@@ -64,6 +64,17 @@ export function DfwMarketDashboard({
     year: "numeric",
   });
 
+  const scrollToMarketSummary = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+  ) => {
+    event.preventDefault();
+    document.getElementById("market-summary")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    window.history.replaceState(null, "", "#market-summary");
+  };
+
   return (
     <div className="min-h-full bg-[#f5f3ef] font-sans text-stone-800">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -85,14 +96,23 @@ export function DfwMarketDashboard({
           </div>
           <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
             <p className="text-xs text-stone-400 tabular-nums">As of {asOf}</p>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              disabled={refreshing}
-              className="inline-flex items-center justify-center rounded-full border border-[#c9be92]/55 bg-[#d8cfa8]/85 px-4 py-2 text-sm font-medium text-stone-800 shadow-sm shadow-stone-900/5 transition hover:border-[#b8aa7a]/70 hover:bg-[#cdc39a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px disabled:opacity-60"
-            >
-              {refreshing ? "Refreshing…" : "Refresh Data"}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href="#market-summary"
+                onClick={scrollToMarketSummary}
+                className="inline-flex items-center justify-center rounded-full border border-stone-300/80 bg-white/40 px-4 py-2 text-sm font-medium text-stone-600 shadow-sm shadow-stone-900/[0.03] transition hover:border-stone-400/90 hover:bg-white/70 hover:text-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px"
+              >
+                Market Summary
+              </a>
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={refreshing}
+                className="inline-flex items-center justify-center rounded-full border border-[#c9be92]/55 bg-[#d8cfa8]/85 px-4 py-2 text-sm font-medium text-stone-800 shadow-sm shadow-stone-900/5 transition hover:border-[#b8aa7a]/70 hover:bg-[#cdc39a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px disabled:opacity-60"
+              >
+                {refreshing ? "Refreshing…" : "Refresh Data"}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -157,7 +177,11 @@ export function DfwMarketDashboard({
             </div>
           </section>
 
-          <section aria-labelledby="notes-heading">
+          <section
+            id="market-summary"
+            aria-labelledby="notes-heading"
+            className="scroll-mt-8"
+          >
             <SectionHeading
               eyebrow="Narrative"
               title="Market Notes"
