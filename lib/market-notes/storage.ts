@@ -3,7 +3,7 @@ import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import { BlobNotFoundError, head, put } from "@vercel/blob";
+import { BlobNotFoundError, get, put } from "@vercel/blob";
 
 import type { MarketNotesRecord } from "@/lib/market-notes/types";
 
@@ -55,32 +55,38 @@ function isRecord(value: unknown): value is MarketNotesRecord {
 /**
  * Vercel Blob adapter — production storage.
  *
+ * The Blob store is PRIVATE. Market Notes are read server-side from the
+ * dashboard page and re-served to the browser as plain props, so the
+ * underlying blob never needs to be publicly fetchable.
+ *
  * Implementation notes:
- *  - We use a single stable pathname (`market-notes/current.json`) with
- *    `addRandomSuffix: false` + `allowOverwrite: true` so the "current"
- *    record is always at the same blob slot.
- *  - Reads use `head(pathname)` to resolve the latest URL, then a
- *    `fetch(..., { cache: "no-store" })` to bypass any CDN cache. The
- *    `BlobNotFoundError` is mapped to a clean `null` so the dashboard
- *    can render its graceful fallback before the first generation.
- *  - `cacheControlMaxAge: 60` is the minimum allowed by Vercel Blob;
- *    combined with `no-store` reads we always see fresh data after a
- *    regeneration.
+ *  - Writes use `access: "private"` and `BLOB_READ_WRITE_TOKEN` to
+ *    authenticate. We keep a single stable pathname
+ *    (`market-notes/current.json`) with `addRandomSuffix: false` +
+ *    `allowOverwrite: true` so the "current" record always lives at
+ *    the same slot.
+ *  - Reads use the SDK's `get(pathname, { access: "private", ... })`
+ *    which streams the blob using the read-write token — a plain
+ *    `fetch(url)` on a private blob would 401. `useCache: false`
+ *    bypasses the Vercel CDN cache so the dashboard sees freshly
+ *    regenerated content immediately. A missing blob (before the
+ *    first generation) returns `null` so the dashboard can render
+ *    its graceful fallback.
+ *  - `cacheControlMaxAge: 60` is the minimum allowed by Vercel Blob.
  */
 function createVercelBlobStorage(token: string): MarketNotesStorage {
   return {
     kind: "vercel-blob",
     async read() {
       try {
-        const info = await head(BLOB_PATHNAME, { token });
-        const response = await fetch(info.url, { cache: "no-store" });
-        if (!response.ok) {
-          console.error(
-            `[market-notes] Vercel Blob fetch returned ${response.status}`,
-          );
-          return null;
-        }
-        const parsed = (await response.json()) as unknown;
+        const result = await get(BLOB_PATHNAME, {
+          access: "private",
+          useCache: false,
+          token,
+        });
+        if (!result || result.statusCode !== 200) return null;
+        const text = await new Response(result.stream).text();
+        const parsed = JSON.parse(text) as unknown;
         return isRecord(parsed) ? parsed : null;
       } catch (error) {
         if (error instanceof BlobNotFoundError) return null;
@@ -93,7 +99,7 @@ function createVercelBlobStorage(token: string): MarketNotesStorage {
     },
     async write(record) {
       await put(BLOB_PATHNAME, JSON.stringify(record, null, 2), {
-        access: "public",
+        access: "private",
         addRandomSuffix: false,
         allowOverwrite: true,
         contentType: "application/json",
