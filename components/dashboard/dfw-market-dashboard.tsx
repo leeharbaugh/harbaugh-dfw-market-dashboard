@@ -84,7 +84,7 @@ export function DfwMarketDashboard({
               href="https://harbaughrealestate.com"
               className="inline-flex w-fit items-center text-xs font-medium tracking-wide text-[#4a5568] transition-colors duration-150 hover:text-[#2c3440] focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/70"
             >
-              ← Harbaugh Real Estate
+              ← Back to Harbaugh Real Estate
             </a>
             <h1 className="text-balance font-sans text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
               Harbaugh DFW Market Dashboard
