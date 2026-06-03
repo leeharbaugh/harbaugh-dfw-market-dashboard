@@ -102,14 +102,14 @@ shared persistence (same Blob store as Market Notes). This avoids firing
 | ---- | ----------- |
 | **SSR / normal page load** | Fresh cache if younger than 6 hours; otherwise live fetch + persist |
 | **Refresh Data** (`?refresh=1`) | Live FRED fetch + cache update |
-| **Cron** (`/api/refresh-fred-cache` every 6 hours) | Live fetch + cache update |
+| **Cron** (`/api/refresh-fred-cache` once daily) | Live fetch + cache update |
 
 If a live refresh fails but a stale cache exists, the dashboard serves the
 stale cache rather than failing entirely.
 
 ### Cron and manual warm
 
-`vercel.json` schedules `GET /api/refresh-fred-cache` every 6 hours.
+`vercel.json` schedules `GET /api/refresh-fred-cache` once daily (06:00 UTC; Hobby plan limit).
 Authenticate the same way as Market Notes:
 
 - Vercel Cron: `Authorization: Bearer ${CRON_SECRET}`
