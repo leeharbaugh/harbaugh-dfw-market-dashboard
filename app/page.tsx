@@ -12,6 +12,7 @@ import { readLatestMarketNotes } from "@/lib/market-notes/storage";
 // already-saved notes.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const maxDuration = 60;
 
 export default async function Home() {
   const [data, marketNotes] = await Promise.all([

@@ -1,11 +1,11 @@
 import "server-only";
 
 import {
-  fetchFredSeriesRegistry,
   getSeriesResultByMetricKey,
   type FredSeriesLoadResult,
   type FredSeriesLoadSuccess,
 } from "@/lib/data/fred-fetch-registry";
+import { getFredSeriesRegistry } from "@/lib/fred/registry-cache";
 import {
   DashboardMetricKey,
   METRIC_KEY_TO_TITLE,
@@ -283,16 +283,22 @@ function applyFredToNational(
   });
 }
 
+export type LoadDashboardDataOptions = {
+  /** When true, bypass the assembled FRED cache and refetch from the API. */
+  fredForceLive?: boolean;
+};
+
 /**
  * Builds the full dashboard bundle, overlaying live FRED data on national
  * metrics and live TRERC housing data on DFW / Arlington / Mansfield when available.
  */
 export async function loadDashboardData(
   seed = 0,
+  options?: LoadDashboardDataOptions,
 ): Promise<DashboardBundle> {
   const sample = buildDashboardMetrics(seed);
   const [fredRegistry, trercRegistry] = await Promise.all([
-    fetchFredSeriesRegistry(),
+    getFredSeriesRegistry({ forceLive: options?.fredForceLive }),
     fetchTrercSeriesRegistry(),
   ]);
 

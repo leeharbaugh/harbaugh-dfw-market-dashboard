@@ -27,6 +27,7 @@ import { saveMarketNotes } from "@/lib/market-notes/storage";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function isAuthorized(request: Request): boolean {
   const { searchParams } = new URL(request.url);

@@ -38,6 +38,7 @@ yarn-error.log*
 
 # market notes (local dev fallback storage)
 /.market-notes/
+/.fred-cache/
 
 # typescript
 *.tsbuildinfo

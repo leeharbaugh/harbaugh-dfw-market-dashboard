@@ -40,7 +40,7 @@ export function DfwMarketDashboard({
     setRefreshing(true);
     try {
       const seed = nextKey * 2654435761;
-      const res = await fetch(`/api/dashboard?seed=${seed}`, {
+      const res = await fetch(`/api/dashboard?seed=${seed}&refresh=1`, {
         cache: "no-store",
       });
       if (res.ok) {

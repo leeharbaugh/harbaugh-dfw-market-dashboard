@@ -160,11 +160,8 @@ export const FRED_DASHBOARD_SERIES: readonly FredSeriesDefinition[] = [
   },
   {
     id: "cpi_dfw",
-    // CUURS37ASA0 was requested but is not a valid FRED series_id (API 400).
-    seriesId: "CUURS37ASA0",
-    fallbackSeriesIds: [
-      "CUURA316SA0",
-    ],
+    // Dallas-Fort Worth-Arlington CPI (valid FRED series; CUURS37ASA0 returns API 400).
+    seriesId: "CUURA316SA0",
     observationStart: FRED_OBSERVATION_START,
     transform: "cpiYearOverYear",
     metricKeys: [DashboardMetricKey.CPI_DFW],

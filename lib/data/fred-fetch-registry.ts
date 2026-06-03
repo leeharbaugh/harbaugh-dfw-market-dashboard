@@ -37,6 +37,31 @@ export type FredSeriesLoadFailure = {
 
 export type FredSeriesLoadResult = FredSeriesLoadSuccess | FredSeriesLoadFailure;
 
+const FRED_FETCH_CONCURRENCY = 4;
+
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      results[index] = await fn(items[index]!);
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(
+    Array.from({ length: workerCount }, () => worker()),
+  );
+  return results;
+}
+
 async function fetchSeriesObservations(
   seriesId: string,
   observationStart: string,
@@ -160,7 +185,8 @@ async function loadOneFredSeries(
   }
 }
 
-export async function fetchFredSeriesRegistry(): Promise<
+/** Fetches all FRED series from the API (no shared cache). */
+export async function fetchFredSeriesRegistryLive(): Promise<
   Map<string, FredSeriesLoadResult>
 > {
   const registry = new Map<string, FredSeriesLoadResult>();
@@ -177,8 +203,10 @@ export async function fetchFredSeriesRegistry(): Promise<
     return registry;
   }
 
-  const results = await Promise.all(
-    FRED_DASHBOARD_SERIES.map((definition) => loadOneFredSeries(definition)),
+  const results = await mapWithConcurrency(
+    FRED_DASHBOARD_SERIES,
+    FRED_FETCH_CONCURRENCY,
+    (definition) => loadOneFredSeries(definition),
   );
 
   for (const result of results) {
