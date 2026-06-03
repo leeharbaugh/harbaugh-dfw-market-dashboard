@@ -2,6 +2,8 @@ import "server-only";
 
 import {
   fetchFredSeriesRegistryLive,
+  mergeFredRegistries,
+  repairFailedFredSeries,
   type FredSeriesLoadResult,
 } from "@/lib/data/fred-fetch-registry";
 import type { FredRegistryCacheRecord } from "@/lib/fred/cache-types";
@@ -77,6 +79,22 @@ function summarizeRegistry(registry: Map<string, FredSeriesLoadResult>) {
   return { seriesCount: registry.size, liveCount, errorCount };
 }
 
+async function readRegistryFromCache(): Promise<
+  Map<string, FredSeriesLoadResult> | null
+> {
+  const cached = await readFredRegistryCacheRecord();
+  if (!cached) return null;
+  return registryFromRecord(cached);
+}
+
+async function finalizeRegistry(
+  registry: Map<string, FredSeriesLoadResult>,
+  prior: Map<string, FredSeriesLoadResult> | null,
+): Promise<Map<string, FredSeriesLoadResult>> {
+  const merged = prior ? mergeFredRegistries(registry, prior) : registry;
+  return repairFailedFredSeries(merged);
+}
+
 async function persistRegistry(
   registry: Map<string, FredSeriesLoadResult>,
   fetchedAt: string,
@@ -108,33 +126,36 @@ export async function getFredSeriesRegistry(
   const forceLive = options?.forceLive === true;
   const cacheDisabled = isFredCacheDisabled();
 
-  if (!forceLive && !cacheDisabled) {
+  const priorRegistry = cacheDisabled ? null : await readRegistryFromCache();
+
+  if (!forceLive && !cacheDisabled && priorRegistry) {
     const cached = await readFredRegistryCacheRecord();
     if (cached && !isCacheRecordStale(cached.fetchedAt)) {
-      return registryFromRecord(cached);
+      const registry = await finalizeRegistry(priorRegistry, null);
+      const { errorCount } = summarizeRegistry(registry);
+      if (errorCount > 0) {
+        await persistRegistry(registry, new Date().toISOString());
+      }
+      return registry;
     }
   }
 
-  const staleCache =
-    !forceLive && !cacheDisabled
-      ? await readFredRegistryCacheRecord()
-      : null;
-
   try {
-    const registry = await fetchFredSeriesRegistryLive();
+    const registry = await fetchFredSeriesRegistryLive(
+      priorRegistry ?? undefined,
+    );
     const fetchedAt = new Date().toISOString();
     if (!cacheDisabled) {
       await persistRegistry(registry, fetchedAt);
     }
     return registry;
   } catch (error) {
-    if (staleCache) {
+    if (priorRegistry) {
       console.warn(
-        "[fred-cache] Live fetch failed; serving stale cache from",
-        staleCache.fetchedAt,
+        "[fred-cache] Live fetch failed; serving prior cache",
         error instanceof Error ? error.message : error,
       );
-      return registryFromRecord(staleCache);
+      return finalizeRegistry(priorRegistry, null);
     }
     throw error;
   }
@@ -145,7 +166,8 @@ export async function getFredSeriesRegistry(
  * Used by the scheduled cache-warmer and protected manual refresh route.
  */
 export async function refreshFredRegistryCache(): Promise<FredRegistryCacheRefreshResult> {
-  const registry = await fetchFredSeriesRegistryLive();
+  const priorRegistry = await readRegistryFromCache();
+  const registry = await fetchFredSeriesRegistryLive(priorRegistry ?? undefined);
   const fetchedAt = new Date().toISOString();
   await writeFredRegistryCacheRecord(recordFromRegistry(registry, fetchedAt));
 

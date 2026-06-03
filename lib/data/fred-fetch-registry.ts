@@ -37,7 +37,13 @@ export type FredSeriesLoadFailure = {
 
 export type FredSeriesLoadResult = FredSeriesLoadSuccess | FredSeriesLoadFailure;
 
-const FRED_FETCH_CONCURRENCY = 4;
+/** Keep low to stay under FRED burst limits (~2 req/s guidance). */
+const FRED_FETCH_CONCURRENCY = 2;
+const FRED_FETCH_STAGGER_MS = 350;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function mapWithConcurrency<T, R>(
   items: readonly T[],
@@ -52,6 +58,9 @@ async function mapWithConcurrency<T, R>(
       const index = nextIndex++;
       if (index >= items.length) return;
       results[index] = await fn(items[index]!);
+      if (FRED_FETCH_STAGGER_MS > 0) {
+        await sleep(FRED_FETCH_STAGGER_MS);
+      }
     }
   }
 
@@ -185,10 +194,56 @@ async function loadOneFredSeries(
   }
 }
 
+/**
+ * Prefer successful series from `incoming`; fill gaps from `prior` when present.
+ */
+export function mergeFredRegistries(
+  incoming: Map<string, FredSeriesLoadResult>,
+  prior: Map<string, FredSeriesLoadResult>,
+): Map<string, FredSeriesLoadResult> {
+  const merged = new Map(incoming);
+  for (const [id, priorResult] of prior) {
+    const current = merged.get(id);
+    if (priorResult.ok && current?.ok !== true) {
+      merged.set(id, priorResult);
+    }
+  }
+  return merged;
+}
+
+/** Re-fetches only series that are missing or failed in `registry`. */
+export async function repairFailedFredSeries(
+  registry: Map<string, FredSeriesLoadResult>,
+): Promise<Map<string, FredSeriesLoadResult>> {
+  const failedDefinitions = FRED_DASHBOARD_SERIES.filter(
+    (definition) => registry.get(definition.id)?.ok !== true,
+  );
+  if (failedDefinitions.length === 0) {
+    return registry;
+  }
+
+  console.warn(
+    `[fred] Repairing ${failedDefinitions.length} failed series: ` +
+      failedDefinitions.map((d) => d.id).join(", "),
+  );
+
+  const results = await mapWithConcurrency(
+    failedDefinitions,
+    FRED_FETCH_CONCURRENCY,
+    (definition) => loadOneFredSeries(definition),
+  );
+
+  const repaired = new Map(registry);
+  for (const result of results) {
+    repaired.set(result.definition.id, result);
+  }
+  return repaired;
+}
+
 /** Fetches all FRED series from the API (no shared cache). */
-export async function fetchFredSeriesRegistryLive(): Promise<
-  Map<string, FredSeriesLoadResult>
-> {
+export async function fetchFredSeriesRegistryLive(
+  prior?: Map<string, FredSeriesLoadResult>,
+): Promise<Map<string, FredSeriesLoadResult>> {
   const registry = new Map<string, FredSeriesLoadResult>();
 
   if (!isFredConfigured()) {
@@ -213,7 +268,8 @@ export async function fetchFredSeriesRegistryLive(): Promise<
     registry.set(result.definition.id, result);
   }
 
-  return registry;
+  const merged = prior ? mergeFredRegistries(registry, prior) : registry;
+  return repairFailedFredSeries(merged);
 }
 
 export function getSeriesResultByMetricKey(
