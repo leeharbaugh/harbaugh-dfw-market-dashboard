@@ -47,7 +47,33 @@ a normal "Refresh Data" click. Generation only runs in two ways:
    (after TRERC has typically published updated monthly data).
 2. **Protected manual refresh** — visit
    `/api/generate-market-notes?secret=YOUR_MARKET_NOTES_SECRET`
-   to regenerate on demand.
+   to regenerate on demand. You can optionally pass editorial guidance
+   via the `hints` query parameter (URL-encoded). Hints influence tone
+   and emphasis only; all figures still come from the live dashboard data.
+
+**Examples**
+
+Simple manual generation:
+
+```
+/api/generate-market-notes?secret=YOUR_MARKET_NOTES_SECRET
+```
+
+Manual generation with editorial hints:
+
+```
+/api/generate-market-notes?secret=YOUR_MARKET_NOTES_SECRET&hints=For%20DFW%20sales%20volume%2C%20prioritize%20YoY%20comparison%20over%20MoM.
+```
+
+Decoded `hints` value:
+
+```
+For DFW sales volume, prioritize YoY comparison over MoM.
+```
+
+Hints are trimmed, limited to 1,000 characters, and stored in the saved
+record as `hintsUsed` so you can see what guidance produced the current
+summary. Scheduled cron runs ignore `hints`.
 
 The dashboard page reads whatever was last saved in shared storage. If
 no notes have been generated yet, a graceful fallback message is shown.

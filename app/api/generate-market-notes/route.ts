@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 
 import { loadDashboardData } from "@/lib/data/load-dashboard-data";
 import { generateMarketNotes } from "@/lib/market-notes/generate";
+import {
+  formatHintsForLog,
+  sanitizeMarketNotesHints,
+} from "@/lib/market-notes/hints";
 import { isOpenAIConfigured } from "@/lib/market-notes/openai";
 import { saveMarketNotes } from "@/lib/market-notes/storage";
 
@@ -19,7 +23,8 @@ import { saveMarketNotes } from "@/lib/market-notes/storage";
  *          triggering the cron, which we accept here.
  *       2. A manual hit to this URL with `?secret=MARKET_NOTES_SECRET`,
  *          used by the site owner when the dashboard data changes
- *          out of band.
+ *          out of band. An optional `hints` query parameter supplies
+ *          editorial guidance for the summary (manual path only).
  *
  * Both paths share the same generation + persistence pipeline so the
  * dashboard always serves the latest saved notes from shared storage.
@@ -86,9 +91,20 @@ async function handle(request: Request): Promise<Response> {
       ? "scheduled"
       : "manual";
 
+  const hints =
+    source === "manual"
+      ? sanitizeMarketNotesHints(new URL(request.url).searchParams.get("hints"))
+      : null;
+
+  if (hints) {
+    console.log(
+      `[market-notes] Manual generation with editorial hints: ${formatHintsForLog(hints)}`,
+    );
+  }
+
   try {
     const data = await loadDashboardData();
-    const record = await generateMarketNotes(data, { source });
+    const record = await generateMarketNotes(data, { source, hints });
     await saveMarketNotes(record);
 
     // Drop any cached RSC payload for the dashboard so the very next
@@ -108,6 +124,7 @@ async function handle(request: Request): Promise<Response> {
       source,
       generatedAt: record.generatedAt,
       model: record.model,
+      hintsUsed: record.hintsUsed ?? null,
       notes: record.notes,
     });
   } catch (error) {

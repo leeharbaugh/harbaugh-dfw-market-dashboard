@@ -48,6 +48,9 @@ function isRecord(value: unknown): value is MarketNotesRecord {
     typeof r.generatedAt === "string" &&
     typeof r.model === "string" &&
     (r.source === "scheduled" || r.source === "manual") &&
+    (r.hintsUsed === undefined ||
+      r.hintsUsed === null ||
+      typeof r.hintsUsed === "string") &&
     r.version === 1
   );
 }

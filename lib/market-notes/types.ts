@@ -20,6 +20,8 @@ export type MarketNotesRecord = {
   model: string;
   /** Short label describing how generation was triggered. */
   source: "scheduled" | "manual";
+  /** Editorial hints supplied for manual generation, if any. */
+  hintsUsed?: string | null;
   /** Schema version, to allow safe evolution of stored records. */
   version: 1;
 };

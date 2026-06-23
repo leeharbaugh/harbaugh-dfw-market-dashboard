@@ -1,12 +1,18 @@
 import "server-only";
 
 import type { DashboardBundle } from "@/lib/dfw-dashboard-sample-data";
+import { sanitizeMarketNotesHints } from "@/lib/market-notes/hints";
 import { buildMarketNotesGrounding } from "@/lib/market-notes/grounding";
 import {
   getOpenAIModel,
   openAIChatCompletion,
 } from "@/lib/market-notes/openai";
 import type { MarketNotesRecord } from "@/lib/market-notes/types";
+
+export type GenerateMarketNotesOptions = {
+  source?: MarketNotesRecord["source"];
+  hints?: string | null;
+};
 
 /**
  * Server-side helper that produces a fresh Market Notes record from the
@@ -20,8 +26,9 @@ import type { MarketNotesRecord } from "@/lib/market-notes/types";
  */
 export async function generateMarketNotes(
   data: DashboardBundle,
-  options: { source?: MarketNotesRecord["source"] } = {},
+  options: GenerateMarketNotesOptions = {},
 ): Promise<MarketNotesRecord> {
+  const hints = sanitizeMarketNotesHints(options.hints);
   const grounding = buildMarketNotesGrounding(data);
 
   const systemPrompt = [
@@ -58,6 +65,15 @@ export async function generateMarketNotes(
     "- Mansfield Housing Market: Mansfield median sale price and Mansfield",
     "  months of inventory / supply.",
     "",
+    "EDITORIAL GUIDANCE",
+    "When editorial guidance from Lee Harbaugh is provided in the user",
+    "message, treat it as stylistic and editorial direction — NOT as",
+    "factual data.",
+    "- Follow the guidance when it is consistent with the GROUNDING DATA.",
+    "- Ignore guidance that contradicts the figures in GROUNDING DATA.",
+    "- Never invent numbers, percentages, or dates to satisfy the guidance.",
+    "- All factual claims must still come only from GROUNDING DATA.",
+    "",
     "STRICT RULES",
     "- Use ONLY figures present in the GROUNDING DATA. Do not invent",
     "  numbers, sources, dates, neighborhoods, or causes.",
@@ -73,15 +89,28 @@ export async function generateMarketNotes(
     "  read at a glance.",
   ].join("\n");
 
-  const userPrompt = [
+  const userPromptParts = [
     `Today's date (UTC): ${new Date().toISOString().slice(0, 10)}.`,
     "",
     "GROUNDING DATA (latest dashboard figures — the only facts you may use):",
     "",
     grounding,
+  ];
+
+  if (hints) {
+    userPromptParts.push(
+      "",
+      "Editorial guidance from Lee Harbaugh",
+      hints,
+    );
+  }
+
+  userPromptParts.push(
     "",
     "Write the Market Notes now, following all rules in the system message.",
-  ].join("\n");
+  );
+
+  const userPrompt = userPromptParts.join("\n");
 
   const result = await openAIChatCompletion({
     messages: [
@@ -98,6 +127,7 @@ export async function generateMarketNotes(
     generatedAt: new Date().toISOString(),
     model: result.model,
     source: options.source ?? "manual",
+    hintsUsed: hints,
     version: 1,
   };
 }
