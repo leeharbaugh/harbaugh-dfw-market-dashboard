@@ -2,16 +2,23 @@
 
 **Last updated:** August 2, 2026
 **Primary branch:** `main`
-**Current phase:** Calculator destinations on custom production domain
+**Current phase:** Same-window tools navigation; contact destination aligned
 
 This file tracks dashboard product and UX work. It is not a commit diary.
 
 ## Completed
 
+### Contact URL and same-window tools navigation (Aug 2, 2026)
+
+- Corrected Get in Touch from obsolete `https://harbaughrealestate.com/contact` (HTTP 404) to the calculators canonical destination `https://harbaughrealestate.com/about.php`.
+- Shared tools nav now opens Rent vs Buy, Real Estate Investment Model, Market Dashboard, and Get in Touch in the **current browser window** (removed `target="_blank"` / `rel="noopener noreferrer"` from those links).
+- Dashboard calculations, market data, charts, and Refresh Data behavior were unchanged.
+- Durable decision recorded in `docs/decisions.md`.
+
 ### Calculator production destinations (Aug 2, 2026)
 
 - Harbaugh Calculators is live at `calculators.harbaughrealestate.com`.
-- Dashboard tools nav now links Rent vs Buy and Real Estate Investment Model to the direct custom-domain routes:
+- Dashboard tools nav links Rent vs Buy and Real Estate Investment Model to the direct custom-domain routes:
   - `https://calculators.harbaughrealestate.com/rent-vs-buy`
   - `https://calculators.harbaughrealestate.com/real-estate-investment`
 - Canonical configuration lives in `lib/site-destinations.ts`; the dashboard does **not** rely on legacy PHP redirects.
@@ -29,12 +36,11 @@ This file tracks dashboard product and UX work. It is not a commit diary.
 
 ## Current Work
 
-None beyond optional physical-device QA of the navigation and a post-deploy smoke test of the two calculator links.
+None beyond optional physical-device QA and a post-deploy smoke test of same-window navigation across the three live tool pages.
 
 ## Open Items
 
-- Push and deploy the dashboard commit that points at the custom-domain calculator routes; production-smoke-test both dashboard links.
+- Push and deploy the contact/same-window navigation fix; production-smoke-test navigation from all three live pages.
 - Configure direct permanent redirects on the legacy Harbaugh Real Estate PHP URLs (`/rent-vs-buy-calculator.php`, `/investment-calculator.php`) — separate repository/host task; verify old URLs and query-string preservation after that work.
-- Get in Touch uses `https://harbaughrealestate.com/contact` (same href as calculators `SiteToolsNav`); that path currently 404s on the public site until the contact page is published.
 - Later: read-only audit for a secured dashboard-refresh feature (Harbaugh Forms); deferred and out of scope here.
 - Optional physical-device QA of nav at phone/tablet widths.

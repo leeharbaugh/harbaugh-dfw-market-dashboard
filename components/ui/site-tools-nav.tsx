@@ -11,8 +11,6 @@ type NavItem = {
   id: string;
   href: string;
   label: string;
-  /** Same-origin current app destination. */
-  local?: boolean;
   accent?: boolean;
 };
 
@@ -31,7 +29,6 @@ const NAV_ITEMS: NavItem[] = [
     id: "market-dashboard",
     href: "/",
     label: "Market Dashboard",
-    local: true,
   },
   {
     id: "get-in-touch",
@@ -49,6 +46,7 @@ type SiteToolsNavProps = {
 /**
  * Shared Harbaugh tools navigation (calculators + dashboard + contact).
  * Desktop: one intentional four-item row. Narrow: deliberate 2×2 grid.
+ * All four destinations use ordinary same-window navigation.
  */
 export function SiteToolsNav({
   active = "market-dashboard",
@@ -73,24 +71,13 @@ export function SiteToolsNav({
 
           return (
             <li key={item.id} className="flex min-w-0">
-              {item.local ? (
-                <a
-                  href={item.href}
-                  className={`${classes} h-full`}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {item.label}
-                </a>
-              ) : (
-                <a
-                  href={item.href}
-                  className={`${classes} h-full`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {item.label}
-                </a>
-              )}
+              <a
+                href={item.href}
+                className={`${classes} h-full`}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {item.label}
+              </a>
             </li>
           );
         })}

@@ -10,11 +10,13 @@ const APPROVED_RENT_VS_BUY =
   "https://calculators.harbaughrealestate.com/rent-vs-buy";
 const APPROVED_INVESTMENT =
   "https://calculators.harbaughrealestate.com/real-estate-investment";
+const APPROVED_GET_IN_TOUCH = "https://harbaughrealestate.com/about.php";
 
 const FORBIDDEN_HREFS = [
   "https://harbaughrealestate.com/rent-vs-buy-calculator.php",
   "https://harbaughrealestate.com/investment-calculator.php",
   "https://harbaugh-calculators.vercel.app",
+  "https://harbaughrealestate.com/contact",
 ] as const;
 
 afterEach(cleanup);
@@ -36,13 +38,30 @@ describe("SiteToolsNav", () => {
     expect(links[0].getAttribute("href")).toBe(APPROVED_RENT_VS_BUY);
     expect(links[1].getAttribute("href")).toBe(APPROVED_INVESTMENT);
     expect(links[2].getAttribute("href")).toBe("/");
-    expect(links[3].getAttribute("href")).toBe(SITE_DESTINATIONS.getInTouch);
+    expect(links[3].getAttribute("href")).toBe(APPROVED_GET_IN_TOUCH);
+    expect(SITE_DESTINATIONS.getInTouch).toBe(APPROVED_GET_IN_TOUCH);
 
     expect(SITE_DESTINATIONS.rentVsBuy).toBe(APPROVED_RENT_VS_BUY);
     expect(SITE_DESTINATIONS.realEstateInvestment).toBe(APPROVED_INVESTMENT);
   });
 
-  it("does not point any destination at legacy PHP or Vercel calculator URLs", () => {
+  it("opens every tools-nav destination in the current window", () => {
+    render(<SiteToolsNav active="market-dashboard" />);
+
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(4);
+
+    for (const link of links) {
+      expect(link.tagName).toBe("A");
+      expect(link.getAttribute("href")).toBeTruthy();
+      expect(link.getAttribute("target")).toBeNull();
+      expect(link.getAttribute("rel")).toBeNull();
+      expect(link.className).toMatch(/focus-visible:outline/);
+      expect(link.className).toMatch(/min-h-10/);
+    }
+  });
+
+  it("does not point any destination at obsolete calculator or contact URLs", () => {
     render(<SiteToolsNav active="market-dashboard" />);
 
     const hrefs = screen
@@ -98,37 +117,7 @@ describe("SiteToolsNav", () => {
     expect(contact.className).toMatch(/d8cfa8/);
     expect(dashboard.className).toMatch(/1e3a5f/);
     expect(dashboard.className).not.toMatch(/d8cfa8/);
-    expect(contact.getAttribute("href")).toBe(SITE_DESTINATIONS.getInTouch);
+    expect(contact.getAttribute("href")).toBe(APPROVED_GET_IN_TOUCH);
     expect(contact.getAttribute("aria-current")).toBeNull();
-  });
-
-  it("exposes keyboard-accessible links with visible focus affordances", () => {
-    render(<SiteToolsNav />);
-
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(4);
-
-    for (const link of links) {
-      expect(link.tagName).toBe("A");
-      expect(link.getAttribute("href")).toBeTruthy();
-      expect(link.className).toMatch(/focus-visible:outline/);
-      expect(link.className).toMatch(/min-h-10/);
-    }
-
-    for (const name of [
-      "Rent vs Buy",
-      "Real Estate Investment Model",
-      "Get in Touch",
-    ]) {
-      const link = screen.getByRole("link", { name });
-      expect(link.getAttribute("target")).toBe("_blank");
-      expect(link.getAttribute("rel")).toMatch(/noopener/);
-    }
-
-    expect(
-      screen
-        .getByRole("link", { name: "Market Dashboard" })
-        .getAttribute("target"),
-    ).toBeNull();
   });
 });

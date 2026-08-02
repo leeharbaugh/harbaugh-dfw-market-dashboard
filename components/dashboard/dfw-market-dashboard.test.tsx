@@ -69,9 +69,20 @@ describe("DfwMarketDashboard header", () => {
         .getByRole("link", { name: "Real Estate Investment Model" })
         .getAttribute("href"),
     ).toBe("https://calculators.harbaughrealestate.com/real-estate-investment");
+    const contact = screen.getByRole("link", { name: "Get in Touch" });
+    expect(contact.getAttribute("href")).toBe(
+      "https://harbaughrealestate.com/about.php",
+    );
+    expect(contact.getAttribute("href")).toBe(SITE_DESTINATIONS.getInTouch);
+    expect(contact.getAttribute("target")).toBeNull();
     expect(
-      screen.getByRole("link", { name: "Get in Touch" }).getAttribute("href"),
-    ).toBe(SITE_DESTINATIONS.getInTouch);
+      screen.getByRole("link", { name: "Rent vs Buy" }).getAttribute("target"),
+    ).toBeNull();
+    expect(
+      screen
+        .getByRole("link", { name: "Real Estate Investment Model" })
+        .getAttribute("target"),
+    ).toBeNull();
     expect(
       screen
         .getByRole("link", { name: "Market Dashboard" })

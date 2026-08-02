@@ -7,13 +7,14 @@ const APPROVED = {
   realEstateInvestment:
     "https://calculators.harbaughrealestate.com/real-estate-investment",
   marketDashboard: "https://dashboard.harbaughrealestate.com",
-  getInTouch: "https://harbaughrealestate.com/contact",
+  getInTouch: "https://harbaughrealestate.com/about.php",
 } as const;
 
-const FORBIDDEN_CALCULATOR_DESTINATIONS = [
+const FORBIDDEN_DESTINATIONS = [
   "https://harbaughrealestate.com/rent-vs-buy-calculator.php",
   "https://harbaughrealestate.com/investment-calculator.php",
   "https://harbaugh-calculators.vercel.app",
+  "https://harbaughrealestate.com/contact",
 ] as const;
 
 describe("SITE_DESTINATIONS", () => {
@@ -24,14 +25,14 @@ describe("SITE_DESTINATIONS", () => {
     );
   });
 
-  it("keeps non-calculator destinations unchanged", () => {
+  it("matches the calculators Get in Touch destination and keeps dashboard origin", () => {
     expect(SITE_DESTINATIONS.marketDashboard).toBe(APPROVED.marketDashboard);
     expect(SITE_DESTINATIONS.getInTouch).toBe(APPROVED.getInTouch);
   });
 
-  it("does not use legacy PHP or temporary Vercel calculator hosts", () => {
+  it("does not use obsolete calculator hosts or the broken /contact path", () => {
     const active = Object.values(SITE_DESTINATIONS);
-    for (const forbidden of FORBIDDEN_CALCULATOR_DESTINATIONS) {
+    for (const forbidden of FORBIDDEN_DESTINATIONS) {
       expect(active).not.toContain(forbidden);
     }
     expect(SITE_DESTINATIONS.rentVsBuy).not.toMatch(

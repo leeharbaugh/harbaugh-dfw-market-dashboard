@@ -26,3 +26,10 @@ This file records settled product and architectural decisions for the market das
 - Canonical hrefs live in `lib/site-destinations.ts` so rendered instances stay consistent.
 - The dashboard does **not** depend on legacy PHP redirects. Permanent redirects from the former Harbaugh Real Estate PHP calculator URLs are a separate host deployment concern.
 - A proposed secured dashboard-refresh control in Harbaugh Forms remains deferred and is outside dashboard destination work.
+
+## Navigation — Same-window tool suite and contact destination
+
+- The shared Harbaugh tools navigation uses **same-window** ordinary link navigation for Rent vs Buy, Real Estate Investment Model, Market Dashboard, and Get in Touch. Do not use `target="_blank"` or `window.open` for these destinations, including cross-subdomain calculator links.
+- Get in Touch uses the same working canonical destination as Harbaugh Calculators: `https://harbaughrealestate.com/about.php` (not the obsolete `/contact` path that returns HTTP 404).
+- Unrelated external links elsewhere may still open in a new tab when intentionally configured.
+- No calculator or dashboard business logic is implied by navigation target behavior.
