@@ -5,6 +5,8 @@ import { DualRateMetricCard } from "@/components/dashboard/dual-rate-metric-card
 import { MarketNotesPanel } from "@/components/dashboard/market-notes-panel";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { SectionHeading } from "@/components/dashboard/section-heading";
+import { SiteToolsNav } from "@/components/ui/site-tools-nav";
+import { backLinkClass, buttonPrimaryClass, buttonSecondaryClass } from "@/lib/design-tokens";
 import type { DashboardBundle } from "@/lib/dfw-dashboard-sample-data";
 import type { MarketNotesRecord } from "@/lib/market-notes/types";
 
@@ -78,41 +80,43 @@ export function DfwMarketDashboard({
   return (
     <div className="min-h-full bg-[#f5f3ef] font-sans text-stone-800">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-stone-200/80 pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0 space-y-3">
-            <a
-              href="https://harbaughrealestate.com"
-              className="inline-flex w-fit items-center text-xs font-medium tracking-wide text-[#4a5568] transition-colors duration-150 hover:text-[#2c3440] focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/70"
-            >
-              ← Back to Harbaugh Real Estate
-            </a>
-            <h1 className="text-balance font-sans text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
-              Harbaugh DFW Market Dashboard
-            </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-stone-500 sm:text-base">
-              A compact read on North Texas housing, mortgage markets, and the
-              broader economy.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
-            <p className="text-xs text-stone-400 tabular-nums">As of {asOf}</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <a
-                href="#market-summary"
-                onClick={scrollToMarketSummary}
-                className="inline-flex items-center justify-center rounded-full border border-stone-300/80 bg-white/40 px-4 py-2 text-sm font-medium text-stone-600 shadow-sm shadow-stone-900/[0.03] transition hover:border-stone-400/90 hover:bg-white/70 hover:text-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px"
-              >
-                Market Summary
+        <header className="border-b border-stone-200/80 pb-6 sm:pb-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0 space-y-2.5">
+              <a href="https://harbaughrealestate.com" className={backLinkClass}>
+                ← Back to Harbaugh Real Estate
               </a>
-              <button
-                type="button"
-                onClick={() => void refresh()}
-                disabled={refreshing}
-                className="inline-flex items-center justify-center rounded-full border border-[#c9be92]/55 bg-[#d8cfa8]/85 px-4 py-2 text-sm font-medium text-stone-800 shadow-sm shadow-stone-900/5 transition hover:border-[#b8aa7a]/70 hover:bg-[#cdc39a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400/80 active:translate-y-px disabled:opacity-60"
-              >
-                {refreshing ? "Refreshing…" : "Refresh Data"}
-              </button>
+              <h1 className="text-balance font-sans text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
+                Harbaugh DFW Market Dashboard
+              </h1>
+              <p className="max-w-2xl text-sm leading-relaxed text-stone-500 sm:text-base">
+                A compact read on North Texas housing, mortgage markets, and the
+                broader economy.
+              </p>
             </div>
+            <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+              <p className="text-xs text-stone-400 tabular-nums">As of {asOf}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href="#market-summary"
+                  onClick={scrollToMarketSummary}
+                  className={buttonSecondaryClass}
+                >
+                  Market Summary
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void refresh()}
+                  disabled={refreshing}
+                  className={buttonPrimaryClass}
+                >
+                  {refreshing ? "Refreshing…" : "Refresh Data"}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-6">
+            <SiteToolsNav active="market-dashboard" />
           </div>
         </header>
 
